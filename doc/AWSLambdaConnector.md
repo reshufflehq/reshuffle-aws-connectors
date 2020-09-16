@@ -126,7 +126,7 @@ const functionInfo = await AWSLambdaConnector.create(
 ```
 
 Create a new Lambda function with the given `functionName`. The code for
-the newly created function can be specified in on of three ways:
+the newly created function can be specified in one of three ways:
 
 * `buffer` a NodeJS buffer with zipped content (a package like [JSZip](https://stuk.github.io/jszip/) can help)
 * `code` a string with code
@@ -174,7 +174,7 @@ await AWSLambdaConnector.createCommandFunction(
 ```
 
 Create a Lambda function to run a CLI command on given input. This action
-receives the desired name for the Lambda function and an S3 URL poiting to
+receives the desired name for the Lambda function and an S3 URL pointing to
 a command line executable. This executable needs to be compatible with
 the AWS Lambda Linux runtime environment.
 
@@ -272,7 +272,7 @@ const functionInfo = await AWSLambdaConnector.createFromFile(
 ```
 
 Create a new Lambda function with the given `functionName` to execute
-the code inside the fiel `filename`. See [create](#create) above for more
+the code inside the file `filename`. See [create](#create) above for more
 details.
 
 ### <a name="delete"></a>Delete action
@@ -291,9 +291,11 @@ _Usage:_
 await AWSLambdaConnector.delete('toLowerUpperString')
 ```
 
-Delete the Lambda function with the name `functionName`.
+Delete the Lambda function with the name `functionName`. Be careful, this
+action is not reversible and will delete any function, not just ones
+created by this connector.
 
-### <a name="invoke"></a>Invoke action
+### <a name="enqueue"></a>Enqueue action
 
 _Definition:_
 
@@ -334,6 +336,26 @@ and a resolutions array in the event object. Each resolution is either the
 value returned by the Lambda function or an `Error` object if the invocation
 failed.
 
+### <a name="getFunctionInfo"></a>Get Function Info action
+
+_Definition:_
+
+```ts
+(
+  functionName: string,
+) => any
+```
+
+_Usage:_
+
+```js
+const info = await AWSLambdaConnector.getFunctionInfo(
+  'toLowerUpperString',
+)
+```
+
+Get detailed information about the specified function.
+
 ### <a name="invoke"></a>Invoke action
 
 _Definition:_
@@ -361,26 +383,6 @@ serializable JavaScript object.
 The invoke action returns the response payload returned by the Lambda
 function. In case of an error during invocation or execution of the
 function, this action throws an error.
-
-### <a name="getFunctionInfo"></a>Get Function Info action
-
-_Definition:_
-
-```ts
-(
-  functionName: string,
-) => any
-```
-
-_Usage:_
-
-```js
-const info = await AWSLambdaConnector.getFunctionInfo(
-  'toLowerUpperString',
-)
-```
-
-Get detailed information about the specified function.
 
 ### <a name="listFunctions"></a>List Functions action
 

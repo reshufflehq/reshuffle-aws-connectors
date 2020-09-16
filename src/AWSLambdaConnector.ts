@@ -2,7 +2,12 @@ import crypto from 'crypto'
 import { promises as fs } from 'fs'
 import { Folder, zipOne } from './Folder'
 import { CoreEventHandler, Options, Reshuffle } from './CoreConnector'
-import { AWS, BaseAWSConnector, validateS3URL } from './BaseAWSConnector'
+import {
+  AWS,
+  BaseAWSConnector,
+  validateS3URL,
+  validateURL,
+} from './BaseAWSConnector'
 
 interface EventOptions {
   type: string
@@ -102,7 +107,6 @@ function onQueueJobDone(queue: Queue, job: Job, resolution: any) {
 }
 
 export class AWSLambdaConnector extends BaseAWSConnector {
-  private iam?: AWS.IAM
   private lambda?: AWS.Lambda
 
   constructor(app: Reshuffle, options: Options, id?: string) {
@@ -114,7 +118,6 @@ export class AWSLambdaConnector extends BaseAWSConnector {
 
   protected onOptionsChanged(options: Options) {
     super.onOptionsChanged(options)
-    this.iam = this.account.getClient('IAM')
     this.lambda = this.account.getClient('Lambda')
   }
 
@@ -139,7 +142,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     command: string,
     files: string | string[] = [],
   ): Promise<any> {
-    if (typeof command !== 'string' || command.length === 0) {
+    if (typeof command !== 'string' || command.trim().length === 0) {
       throw new Error(`Invalid commmand: ${command}`)
     }
     const urls = Array.isArray(files) ? files : [files]
@@ -157,8 +160,18 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     this.validateFunctionName(functionName)
     const buffer = await this.makeBuffer(payload)
 
-    const roleName = options.roleName || 'lambda_basic_execution'
-    const iamRes = await this.iam!.getRole({ RoleName: roleName }).promise()
+    const role = await this.identity.getOrCreateServiceRole(
+      options.roleName || 'reshuffle_AWSLambdaConnector',
+      'lambda.amazonaws.com',
+      this.identity.createSimplePolicy(
+        'arn:aws:logs:*:*:*',
+        [
+          'logs:CreateLogGroup',
+          'logs:CreateLogStream',
+          'logs:PutLogEvents',
+        ],
+      ),
+    )
 
     return this.lambda!.createFunction({
       Code: { ZipFile: buffer },
@@ -168,7 +181,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
       MemorySize: options.memorySize || 256,
       Publish: true,
       Runtime: options.runtime || 'nodejs12.x',
-      Role: iamRes.Role.Arn,
+      Role: role.Arn,
       Tags: options.tags || {},
       Timeout: options.timeout || 3,
     }).promise()
@@ -192,10 +205,16 @@ export class AWSLambdaConnector extends BaseAWSConnector {
 
   public async createCommandFunction(
     functionName: string,
-    executable: string,
+    executable: Record<string, any>,
     force = false,
   ) {
-    validateS3URL(executable)
+    if (typeof executable.s3 === 'string') {
+      validateS3URL(executable.s3)
+    } else if (typeof executable.url === 'string') {
+      validateURL(executable.url)
+    } else {
+      throw new Error(`Invalid executable: ${executable}`)
+    }
 
     if (!force) {
       const info = await this.getFunctionInfo(functionName)
@@ -223,6 +242,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
         dependencies: {
           'aws-sdk': '^2.741.0',
           jszip: '^3.5.0',
+          'node-fetch': '^2.6.0',
           rimraf: '^3.0.2',
         },
       }))

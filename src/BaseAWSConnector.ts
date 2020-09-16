@@ -1,4 +1,5 @@
 import AWS from 'aws-sdk'
+import crypto from 'crypto'
 import objhash from 'object-hash'
 import { CoreConnector, Options, Reshuffle } from './CoreConnector'
 
@@ -44,12 +45,107 @@ class AWSAccount {
   }
 }
 
+export interface AWSPolicyStatement {
+  effect: string
+  action: string[]
+  resource: string
+}
+
+class AWSIdentity {
+  constructor(private account: AWSAccount) {
+  }
+
+  public createPolicy(statements: AWSPolicyStatement | AWSPolicyStatement[]) {
+    const sts = Array.isArray(statements) ? statements : [statements]
+
+    return {
+      Version: '2012-10-17',
+      Statement: sts.map((st) => ({
+        Effect: st.effect,
+        Action: st.action,
+        Resource: st.resource,
+      })),
+    }
+  }
+
+  public createSimplePolicy(
+    resource: string,
+    action: string[],
+    effect = 'Allow',
+  ) {
+    return this.createPolicy({ effect, resource, action })
+  }
+
+  public async getOrCreateServiceRole(
+    roleName: string,
+    service: string,
+    policies?: string | Record<string, any> | (string | Record<string, any>)[],
+  ) {
+    const iam = this.account.getClient('IAM')
+
+    try {
+      const res = await iam.getRole({ RoleName: roleName }).promise()
+      return res.Role
+
+    } catch (e) {
+      if (e.code !== 'NoSuchEntity') {
+        throw e
+      }
+
+      console.log(`Creating IAM role for service ${service}: ${roleName}`)
+      const res = await iam.createRole({
+        RoleName: roleName,
+        AssumeRolePolicyDocument: JSON.stringify({
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: {
+                Service: service,
+              },
+              Action: 'sts:AssumeRole',
+            },
+          ],
+        }),
+      }).promise()
+
+      const policiesArray =
+        policies === undefined ? [] :
+        Array.isArray(policies) ? policies :
+        [policies]
+
+      for (const policy of policiesArray) {
+        if (typeof policy === 'string') {
+          await iam.attachRolePolicy({
+            RoleName: roleName,
+            PolicyArn: policy,
+          }).promise()
+        } else {
+          await iam.putRolePolicy({
+            PolicyDocument: JSON.stringify(policy),
+            PolicyName: `policy_${roleName}_${
+              crypto.randomBytes(4).toString('hex')}`,
+            RoleName: roleName,
+          }).promise()
+        }
+      }
+
+      // It takes a while for a service role to become assumable
+      await new Promise((resolve) => setTimeout(resolve, 10000))
+
+      return res.Role
+    }
+  }
+}
+
 export class BaseAWSConnector extends CoreConnector {
   protected account = new AWSAccount()
+  protected identity: AWSIdentity
 
   constructor(app: Reshuffle, options: Options, id?: string) {
     super(app, options, id)
     this.updateOptions(options)
+    this.identity = new AWSIdentity(this.account)
   }
 
   protected onOptionsChanged(options: Options) {
@@ -112,4 +208,11 @@ export function validateSecretAccessKey(secretAccessKey: string): string {
     throw new Error(`Invalid secretAccessKey: ${secretAccessKey}`)
   }
   return secretAccessKey
+}
+
+export function validateURL(url: string): string {
+  if (typeof url !== 'string' || url.length === 0) {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+  return url;
 }

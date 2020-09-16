@@ -31,7 +31,7 @@ export class Folder {
     return exec(`cd ${this.base} && ${cmd}`)
   }
 
-  public async has(filename: string): Promise<boolean> {
+  public async contains(filename: string): Promise<boolean> {
     await this.init()
     try {
       await fs.stat(this.path(filename))
