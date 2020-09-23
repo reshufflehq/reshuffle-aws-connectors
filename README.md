@@ -25,6 +25,8 @@ the implemented using the
 
 * [S3: Watch files](examples/s3-watch-files.js)
 
+* [S3+Lambda: Video info](examples/s3-lambda-video-info.js)
+
 ## Use Cases
 
 * [Create video thumbnails](usecases/create-video-thumbnails.md)
