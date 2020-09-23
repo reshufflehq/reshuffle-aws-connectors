@@ -6,7 +6,7 @@ const app = new Reshuffle()
 const s3Connector = new AWSS3Connector(app, {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  bucket: process.env.AWS_BUCKET,
+  bucket: process.env.AWS_DEFAULT_BUCKET,
 })
 
 s3Connector.on({ type: 'ObjectAdded' }, async (event) => {

@@ -27,9 +27,9 @@ Not with Reshuffle!
 
 &nbsp;&nbsp;&nbsp;&nbsp;AWS_SECRET_ACCESS_KEY
 
-&nbsp;&nbsp;&nbsp;&nbsp;AWS_REGION
+&nbsp;&nbsp;&nbsp;&nbsp;AWS_DEFAULT_REGION
 
-&nbsp;&nbsp;&nbsp;&nbsp;AWS_BUCKET
+&nbsp;&nbsp;&nbsp;&nbsp;AWS_DEFAULT_BUCKET
 
 &nbsp;&nbsp;&nbsp;&nbsp;S3_SOURCE_BUCKET
 

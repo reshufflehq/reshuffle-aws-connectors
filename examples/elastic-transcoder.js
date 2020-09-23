@@ -7,7 +7,7 @@ async function main() {
   const awsElasticTranscoder = new AWSElasticTranscoderConnector(app, {
     accessKeyId: process.env.SECRETS_AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.SECRETS_AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_REGION,
+    region: process.env.AWS_DEFAULT_REGION,
   })
 
   const httpConnector = new HttpConnector(app)

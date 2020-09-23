@@ -16,7 +16,7 @@ const AWS_ACCOUNT = {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 }
-const AWS_REGION = process.env.AWS_REGION
+const AWS_REGION = process.env.AWS_DEFAULT_REGION
 
 // Before you run, set up S3:
 // 1. Create two S3 buckets.
