@@ -206,7 +206,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
   public async createCommandFunction(
     functionName: string,
     executable: Record<string, any>,
-    force = false,
+    options: Options = {},
   ) {
     if (typeof executable.s3 === 'string') {
       validateS3URL(executable.s3)
@@ -216,7 +216,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
       throw new Error(`Invalid executable: ${executable}`)
     }
 
-    if (!force) {
+    if (!options.force) {
       const info = await this.getFunctionInfo(functionName)
       if (info) {
         if (info.Tags[COMMAND_TAG_NAME] !== COMMAND_TAG_VALUE) {
@@ -254,9 +254,16 @@ export class AWSLambdaConnector extends BaseAWSConnector {
 
       console.log(`${functionName}: Deploying to Lambda`)
       const func = await this.createFromBuffer(functionName, buffer, {
-        env: { EXECUTABLE: executable },
-        tags: { [COMMAND_TAG_NAME]: COMMAND_TAG_VALUE },
-        timeout: 300,
+        ...options,
+        env: {
+          ...(options.env || {}),
+          EXECUTABLE: JSON.stringify(executable),
+        },
+        tags: {
+          ...(options.tags || {}),
+          [COMMAND_TAG_NAME]: COMMAND_TAG_VALUE,
+        },
+        timeout: options.timeout || 300,
       }) // must explicitly await for finally
       return func
 

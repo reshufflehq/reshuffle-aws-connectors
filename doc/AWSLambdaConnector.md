@@ -160,7 +160,7 @@ _Definition:_
 (
   functionName: string,
   executable: string,
-  force = false,
+  options?: object,
 ) => object
 ```
 
@@ -182,10 +182,12 @@ The action packs the code and configuration required to run the command line
 executable and deploys them to Lambda under `functionName`. If a Lambda
 function with this name exists that was not previsouly deployed by the
 connector, deployment fails. If a Lambda exists that was deployed by the
-connector, then deployment is skipped unless `force` is set to `true`.
+connector, then deployment is skipped unless `options.force` is `true`.
 
-See [command](#command) above on running CLI commands deployed with this
-action.
+The `options` are the same as the ones used by [create](#create) with the
+addition of the `force` flag mentioned above.
+
+See [command](#command) on how to run CLI commands deployed with this action.
 
 ### <a name="createFromBuffer"></a>Create From Buffer action
 
