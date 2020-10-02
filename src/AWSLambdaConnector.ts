@@ -424,7 +424,12 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     if (payload === null) {
       return err('unknown')
     }
-    if (payload.statusCode !== 200) {
+
+    if (typeof payload.statusCode !== 'number') {
+      return payload
+    }
+
+    if (payload.statusCode < 200 || 300 <= payload.statusCode) {
       return err(
         payload.statusCode ||
         payload.errorMessage ||
