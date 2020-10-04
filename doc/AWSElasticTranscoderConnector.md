@@ -31,6 +31,17 @@ _SDK_:
 
 [sdk](#sdk) Get direct SDK access
 
+## Construction
+
+```js
+const app = new Reshuffle()
+const awsElasticTranscoderConnector = new AWSElasticTranscoderConnector(app, {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_DEFAULT_REGION,
+})
+```
+
 ## Event Details
 
 ### <a name="JobStatusChanged"></a>Job Status Changed event
@@ -64,8 +75,8 @@ _Definition:_
 _Usage:_
 
 ```js
-const job = await AmazonElasticTranscoderConnector.createJob(...)
-await AmazonElasticTranscoderConnector.cancelJob(job.Id)
+const job = await awsElasticTranscoderConnector.createJob(...)
+await awsElasticTranscoderConnector.cancelJob(job.Id)
 ```
 
 Cancel a transcoding job.
@@ -83,7 +94,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const job = await AmazonElasticTranscoderConnector.createJob({
+const job = await awsElasticTranscoderConnector.createJob({
   PipelineId: '3141592653589-pipipe',
   Input: {
     Key: 'my-input-file.mov',
@@ -113,7 +124,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const pipeline = await AmazonElasticTranscoderConnector.findPipelineByName(
+const pipeline = await awsElasticTranscoderConnector.findPipelineByName(
   'My Pipeline'
 )
 ```
@@ -139,7 +150,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const preset = await AmazonElasticTranscoderConnector.findPresetByDescription('iphone')
+const preset = await awsElasticTranscoderConnector.findPresetByDescription('iphone')
 ```
 
 Find a preset object with a description matching the specified token.
@@ -163,7 +174,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const pipelines = await AmazonElasticTranscoderConnector.listPipelines()
+const pipelines = await awsElasticTranscoderConnector.listPipelines()
 ```
 
 List all the available transcoding pipelines. Pipelines define the S3
@@ -186,7 +197,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const presets = await AmazonElasticTranscoderConnector.listPresets()
+const presets = await awsElasticTranscoderConnector.listPresets()
 ```
 
 Get a list of transcoding output
@@ -205,9 +216,9 @@ _Definition:_
 _Usage:_
 
 ```js
-const job = await AmazonElasticTranscoderConnector.createJob(...)
+const job = await awsElasticTranscoderConnector.createJob(...)
 await Script.sleep(1000)
-const info = await AmazonElasticTranscoderConnector.readJob(job.Id)
+const info = await awsElasticTranscoderConnector.readJob(job.Id)
 ```
 
 Get updated information on a transcoding job.
@@ -227,7 +238,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const s3 = await S3.sdk()
+const et = await awsElasticTranscoderConnector.sdk()
 ```
 
 Get the underlying SDK object. You can specify additional options to override

@@ -54,6 +54,17 @@ _SDK_:
 
 [sdk](#sdk) Get direct SDK access
 
+## Construction
+
+```js
+const app = new Reshuffle()
+const awsS3Connector = new AWSS3Connector(app, {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  bucket: process.env.AWS_DEFAULT_BUCKET,
+})
+```
+
 ## Event Details
 
 ### <a name="bucketInitialized"></a>Bucket Initialized event
@@ -258,7 +269,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const buckets = await AWSS3Connector.listBuckets()
+const buckets = await awsS3Connector.listBuckets()
 ```
 
 Get a list of
@@ -276,7 +287,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const names = await AWSS3Connector.listBucketNames()
+const names = await awsS3Connector.listBucketNames()
 ```
 
 Get a list of accessible bucket names.
@@ -295,7 +306,7 @@ _Definition:_
 _Usage:_
 
 ```js
-await AWSS3Connector.createBucket('my-bucket-name', 'us-west-1')
+await awsS3Connector.createBucket('my-bucket-name', 'us-west-1')
 ```
 
 Create a new bucket.
@@ -313,7 +324,7 @@ _Definition:_
 _Usage:_
 
 ```js
-await AWSS3Connector.deleteBucket('my-bucket-name')
+await awsS3Connector.deleteBucket('my-bucket-name')
 ```
 
 Delete a bucket.
@@ -331,7 +342,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const objects = await AWSS3Connector.listObjects('my-bucket-name')
+const objects = await awsS3Connector.listObjects('my-bucket-name')
 ```
 
 Get a list of
@@ -351,7 +362,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const keys = await AWSS3Connector.listObjectKeys()
+const keys = await awsS3Connector.listObjectKeys()
 ```
 
 Get a list of object keys in the specified bucket.
@@ -372,7 +383,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const result = await AWSS3Connector.copyObject(
+const result = await awsS3Connector.copyObject(
   'old-bucket',
   'original.jpg',
   'new-bucket',
@@ -397,7 +408,7 @@ _Definition:_
 _Usage:_
 
 ```js
-await AWSS3Connector.deleteObject('my-bucket-name', 'no-longer-needed.txt')
+await awsS3Connector.deleteObject('my-bucket-name', 'no-longer-needed.txt')
 ```
 
 Delete an object from the specified bucket.
@@ -416,7 +427,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const info = await AWSS3Connector.getObject('my-bucket-name', 'image.png')
+const info = await awsS3Connector.getObject('my-bucket-name', 'image.png')
 ```
 
 Get information about an object, including its contents, as defined
@@ -437,7 +448,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const info = await AWSS3Connector.putObject(
+const info = await awsS3Connector.putObject(
   'my-bucket-name',
   'hello.txt',
   Buffer.from('Hello, world!'),
@@ -462,7 +473,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const url = await AWSS3Connector.getSignedURL('getObject', 'me.png')
+const url = await awsS3Connector.getSignedURL('getObject', 'me.png')
 ```
 
 Get a pre-signed URL for a single operation. The URL can be used to
@@ -484,7 +495,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const url = await AWSS3Connector.getSignedObjectGetURL('me.png')
+const url = await awsS3Connector.getSignedObjectGetURL('me.png')
 ```
 
 Get a pre-signed URL for downloading an object. The URL can be used to
@@ -506,7 +517,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const url = await AWSS3Connector.getSignedObjectPutURL('you.png')
+const url = await awsS3Connector.getSignedObjectPutURL('you.png')
 ```
 
 Get a pre-signed URL for uploading an object. The URL can be used with a PUT
@@ -528,7 +539,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const url = await AWSS3Connector.getS3URL('image.png')
+const url = await awsS3Connector.getS3URL('image.png')
 ```
 
 Get an S3 object URL in the form "s3://<bucket>//<key>". If `bucket` is omitted
@@ -548,7 +559,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const url = await AWSS3Connector.getWebURL('image.png')
+const url = await awsS3Connector.getWebURL('image.png')
 ```
 
 Get an HTTP URL for accessing objet `key` in `bucket`. If `bucket` is omitted
@@ -573,7 +584,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const s3 = await AWSS3Connector.sdk()
+const s3 = await awsS3Connector.sdk()
 ```
 
 Get the underlying SDK object. You can specify additional options to override

@@ -36,6 +36,17 @@ _SDK_:
 
 [sdk](#sdk) Get direct SDK access
 
+## Construction
+
+```js
+const app = new Reshuffle()
+const awsLambdaConnector = new AWSLambdaConnector(app, {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_DEFAULT_REGION,
+})
+```
+
 ## Event Details
 
 ### <a name="queueComplete"></a>Queue Complete event
@@ -108,7 +119,7 @@ interface Payload {
 _Usage:_
 
 ```js
-const functionInfo = await AWSLambdaConnector.create(
+const functionInfo = await awsLambdaConnector.create(
   'toLowerUpperString',
   { code: `
     exports.handler = async (event) => {
@@ -167,7 +178,7 @@ _Definition:_
 _Usage:_
 
 ```js
-await AWSLambdaConnector.createCommandFunction(
+await awsLambdaConnector.createCommandFunction(
   'reshuffle-command-mediainfo',
   's3://<my-bucket>/mediainfo',
 )
@@ -207,7 +218,7 @@ _Usage:_
 const zip = new require('JSZip')()
 // ... add files ...
 const buffer = await zip.generateAsync({ type: 'nodebuffer' })
-const functionInfo = await AWSLambdaConnector.createFromBuffer(
+const functionInfo = await awsLambdaConnector.createFromBuffer(
   'toLowerUpperString',
   buffer,
 )
@@ -232,7 +243,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const functionInfo = await AWSLambdaConnector.createFromCode(
+const functionInfo = await awsLambdaConnector.createFromCode(
   'toLowerUpperString',
   `
   exports.handler = async (event) => {
@@ -267,7 +278,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const functionInfo = await AWSLambdaConnector.createFromFile(
+const functionInfo = await awsLambdaConnector.createFromFile(
   'toLowerUpperString',
   './toLowerUpperString.js',
 )
@@ -290,7 +301,7 @@ _Definition:_
 _Usage:_
 
 ```js
-await AWSLambdaConnector.delete('toLowerUpperString')
+await awsLambdaConnector.delete('toLowerUpperString')
 ```
 
 Delete the Lambda function with the name `functionName`. Be careful, this
@@ -312,7 +323,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const qid = await AWSLambdaConnector.enqueue(
+const qid = await awsLambdaConnector.enqueue(
   'toLowerUpperString',
   [
     { str: 'Alpha' },
@@ -351,7 +362,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const info = await AWSLambdaConnector.getFunctionInfo(
+const info = await awsLambdaConnector.getFunctionInfo(
   'toLowerUpperString',
 )
 ```
@@ -372,7 +383,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const { lower, upper } = await AWSLambdaConnector.invoke(
+const { lower, upper } = await awsLambdaConnector.invoke(
   'toLowerUpperString',
   { str: 'My Awesome String' },
 )
@@ -397,7 +408,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const list = await AWSLambdaConnector.listFunctions()
+const list = await awsLambdaConnector.listFunctions()
 ```
 
 Get information about deployed Lambda functions.
@@ -417,7 +428,7 @@ _Definition:_
 _Usage:_
 
 ```js
-const lambda = await AWSLambdaConnector.sdk()
+const lambda = await awsLambdaConnector.sdk()
 ```
 
 Get the underlying SDK object. You can specify additional options to override
