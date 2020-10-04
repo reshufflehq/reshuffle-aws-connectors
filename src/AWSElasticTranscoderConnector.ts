@@ -1,5 +1,5 @@
 import { AWS, BaseAWSConnector } from './BaseAWSConnector'
-import { CoreEventHandler, Options } from './CoreConnector'
+import { CoreEventHandler, Options, Reshuffle } from './CoreConnector'
 
 interface EventOptions {
   pipelineId: string
@@ -27,12 +27,13 @@ function search(array: Record<string, any>[], field: string, token: string) {
 }
 
 export class AWSElasticTranscoderConnector extends BaseAWSConnector {
-  private et?: AWS.ElasticTranscoder
+  private et: AWS.ElasticTranscoder
 
-  // Lifecycle //////////////////////////////////////////////////////
-
-  protected onOptionsChanged(options: Options) {
-    super.onOptionsChanged(options)
+  constructor(app: Reshuffle, options: Options, id?: string) {
+    super(app, options, id)
+    if (!this.options.region) {
+      throw new Error('No region')
+    }
     this.et = this.account.getClient('ElasticTranscoder')
   }
 
@@ -55,7 +56,7 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
       (ec) => ec.options.pipelineId
     ) as string[]
 
-    const [oldPipelines, newPipelines] = await this.store!.update(
+    const [oldPipelines, newPipelines] = await this.store.update(
       'pipelines',
       async () => Object.fromEntries(
         await Promise.all(ids.map((id) => this.getJobs(id)))
@@ -87,7 +88,7 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
 
   private async getJobs(pipelineId: string): Promise<[string, JobSet]> {
     const req = { PipelineId: pipelineId }
-    const res = await this.et!.listJobsByPipeline(req).promise()
+    const res = await this.et.listJobsByPipeline(req).promise()
     const list = res.Jobs as Job[]
     const jobs: JobSet = {}
     for (const job of list) {
@@ -99,11 +100,11 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
   // Actions ////////////////////////////////////////////////////////
 
   public async cancelJob(id: string): Promise<void> {
-    await this.et!.cancelJob({ Id: id }).promise()
+    await this.et.cancelJob({ Id: id }).promise()
   }
 
   public async createJob(params: any): Promise<Job> {
-    const res = await this.et!.createJob(params).promise()
+    const res = await this.et.createJob(params).promise()
     return res.Job as Job
   }
 
@@ -126,17 +127,17 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
   }
 
   public async listPipelines(): Promise<Pipeline[]> {
-    const res = await this.et!.listPipelines({}).promise()
+    const res = await this.et.listPipelines({}).promise()
     return res.Pipelines as Pipeline[]
   }
 
   public async listPresets(): Promise<Preset[]> {
-    const res = await this.et!.listPresets({}).promise()
+    const res = await this.et.listPresets({}).promise()
     return res.Presets as Preset[]
   }
 
   public async readJob(id: string): Promise<Job> {
-    const res = await this.et!.readJob({ Id: id }).promise()
+    const res = await this.et.readJob({ Id: id }).promise()
     return res.Job as Job
   }
 

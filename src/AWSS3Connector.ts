@@ -1,4 +1,4 @@
-import { CoreEventHandler, Options } from './CoreConnector'
+import { CoreEventHandler, Options, Reshuffle } from './CoreConnector'
 import { AWS, BaseAWSConnector, validateBucket } from './BaseAWSConnector'
 
 interface EventOptions {
@@ -15,28 +15,24 @@ interface S3Object {
 type S3Bucket = Record<string, S3Object>
 
 export class AWSS3Connector extends BaseAWSConnector {
-  private bucket?: string
-  private s3?: AWS.S3
+  private bucket: string
+  private s3: AWS.S3
   private rs3?: AWS.S3
 
-  // Lifecycle //////////////////////////////////////////////////////
-
-  protected onOptionsChanged(options: Options) {
-    super.onOptionsChanged(options)
+  constructor(app: Reshuffle, options: Options, id?: string) {
+    super(app, options, id)
     this.s3 = this.account.getClient('S3')
     this.bucket = validateBucket(options.bucket)
   }
 
   private async getRegionalClient() {
-    if (this.rs3) {
-      return this.rs3
+    if (!this.rs3) {
+      const res = await this.s3.getBucketLocation({
+        Bucket: this.bucket,
+      }).promise()
+      const region = res.LocationConstraint
+      this.rs3 = region ? this.account.getClient('S3', { region }) : this.s3
     }
-
-    const res = await this.s3!.getBucketLocation({
-      Bucket: this.bucket!,
-    }).promise()
-    const region = res.LocationConstraint
-    this.rs3 = region ? this.account.getClient('S3', { region }) : this.s3
     return this.rs3
   }
 
@@ -59,8 +55,8 @@ export class AWSS3Connector extends BaseAWSConnector {
   }
 
   protected async onInterval() {
-    const [oldObjects, newObjects] = await this.store!.update(
-      this.bucket!,
+    const [oldObjects, newObjects] = await this.store.update(
+      this.bucket,
       () => this.getObjectsInBucket()
     )
 
@@ -95,8 +91,8 @@ export class AWSS3Connector extends BaseAWSConnector {
 
   private async getObjectsInBucket() {
     // This only works up to 1000 objects
-    const res = await this.s3!.listObjectsV2({
-      Bucket: this.bucket!,
+    const res = await this.s3.listObjectsV2({
+      Bucket: this.bucket,
     }).promise()
     if (!res.Contents) {
       return {}
@@ -174,7 +170,7 @@ export class AWSS3Connector extends BaseAWSConnector {
   }
 
   public async listBuckets() {
-    const res = await this.s3!.listBuckets().promise()
+    const res = await this.s3.listBuckets().promise()
     return res.Buckets
   }
 
@@ -191,20 +187,20 @@ export class AWSS3Connector extends BaseAWSConnector {
         },
       }
       : {}
-    await this.s3!.createBucket({ Bucket: bucket, ...cfg }).promise()
+    await this.s3.createBucket({ Bucket: bucket, ...cfg }).promise()
   }
 
   public async deleteBucket(bucket: string) {
-    await this.s3!.deleteBucket({ Bucket: bucket }).promise()
+    await this.s3.deleteBucket({ Bucket: bucket }).promise()
   }
 
-  public async listObjects(bucket: string = this.bucket!) {
+  public async listObjects(bucket: string = this.bucket) {
     // TODO: handle continuation tokens
-    const res = await this.s3!.listObjectsV2({ Bucket: bucket }).promise()
+    const res = await this.s3.listObjectsV2({ Bucket: bucket }).promise()
     return res.Contents
   }
 
-  public async listObjectKeys(bucket: string = this.bucket!) {
+  public async listObjectKeys(bucket: string = this.bucket) {
     const objects = await this.listObjects(bucket)
     return objects && objects.map((o) => o.Key)
   }
@@ -221,24 +217,24 @@ export class AWSS3Connector extends BaseAWSConnector {
       Key: targetKey,
     }
 
-    const res = await this.s3!.copyObject(req).promise()
+    const res = await this.s3.copyObject(req).promise()
     return res.CopyObjectResult
   }
 
-  public async deleteObject(key: string, bucket: string = this.bucket!) {
-    await this.s3!.deleteObject({ Bucket: bucket, Key: key }).promise()
+  public async deleteObject(key: string, bucket: string = this.bucket) {
+    await this.s3.deleteObject({ Bucket: bucket, Key: key }).promise()
   }
 
-  public async getObject(key: string, bucket: string = this.bucket!) {
-    return this.s3!.getObject({ Bucket: bucket, Key: key }).promise()
+  public async getObject(key: string, bucket: string = this.bucket) {
+    return this.s3.getObject({ Bucket: bucket, Key: key }).promise()
   }
 
   public async putObject(
     key: string,
     buffer: Buffer,
-    bucket: string = this.bucket!
+    bucket: string = this.bucket
   ) {
-    return this.s3!.putObject({
+    return this.s3.putObject({
       Bucket: bucket,
       Key: key,
       Body: buffer,
@@ -270,12 +266,12 @@ export class AWSS3Connector extends BaseAWSConnector {
   }
 
   public async getS3URL(key: string, bucket = this.bucket): Promise<string> {
-    validateBucket(bucket!)
+    validateBucket(bucket)
     return `s3://${bucket}/${key}`
   }
 
   public async getWebURL(key: string, bucket = this.bucket): Promise<string> {
-    const res = await this.s3!.getBucketLocation({ Bucket: bucket! }).promise()
+    const res = await this.s3.getBucketLocation({ Bucket: bucket }).promise()
     const region = res.LocationConstraint!
     return `http://${bucket}.s3-website-${region}.amazonaws.com/${key}`
   }

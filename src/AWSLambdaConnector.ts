@@ -107,17 +107,13 @@ function onQueueJobDone(queue: Queue, job: Job, resolution: any) {
 }
 
 export class AWSLambdaConnector extends BaseAWSConnector {
-  private lambda?: AWS.Lambda
+  private lambda: AWS.Lambda
 
   constructor(app: Reshuffle, options: Options, id?: string) {
     super(app, options, id)
-    this.intervalDelayMs = undefined
-  }
-
-  // Lifecycle //////////////////////////////////////////////////////
-
-  protected onOptionsChanged(options: Options) {
-    super.onOptionsChanged(options)
+    if (!this.options.region) {
+      throw new Error('No region')
+    }
     this.lambda = this.account.getClient('Lambda')
   }
 
@@ -173,7 +169,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
       ),
     )
 
-    return this.lambda!.createFunction({
+    return this.lambda.createFunction({
       Code: { ZipFile: buffer },
       Environment: options.env ? { Variables: options.env } : {},
       FunctionName: functionName,
@@ -298,7 +294,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
 
   public async delete(functionName: string): Promise<void> {
     this.validateFunctionName(functionName)
-    await this.lambda!.deleteFunction({
+    await this.lambda.deleteFunction({
       FunctionName: functionName,
     }).promise()
   }
@@ -319,7 +315,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     const queue = createQueue(functionName, payloads, maxConcurrent)
     console.log('Create queue:', queue.id, queue.functionName)
 
-    await this.store!.update('queues', async (queues: QueueSet = {}) => {
+    await this.store.update('queues', async (queues: QueueSet = {}) => {
       queues[queue.id] = queue
       return queues
     })
@@ -333,7 +329,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     const jobs: Job[] = []
     const complete: Queue[] = []
 
-    await this.store!.update(
+    await this.store.update(
       'queues',
       async (queues: QueueSet) => {
         for (const queue of Object.values(queues)) {
@@ -357,13 +353,13 @@ export class AWSLambdaConnector extends BaseAWSConnector {
 
     const startJob = async (job: Job) => {
       console.log('Starting job:', job.functionName, job.payload)
-      const res = await this.lambda!.invoke({
+      const res = await this.lambda.invoke({
         FunctionName: job.functionName,
         Payload: JSON.stringify(job.payload),
       }).promise()
       const resolution = this.parseResponse(res, job.functionName)
 
-      await this.store!.update('queues', async (queues: QueueSet) => {
+      await this.store.update('queues', async (queues: QueueSet) => {
         onQueueJobDone(queues[job.queue.id], job, resolution)
         console.log('Job done:', job.functionName, job.payload)
         return queues
@@ -390,7 +386,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
 
   public async getFunctionInfo(functionName: string): Promise<any> {
     try {
-      const info = await this.lambda!.getFunction({
+      const info = await this.lambda.getFunction({
         FunctionName: functionName,
       }).promise() // must explicitly await for catch
       return info
@@ -405,7 +401,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
   public async invoke(functionName: string, payload: any) {
     this.validateFunctionName(functionName)
 
-    const res = await this.lambda!.invoke({
+    const res = await this.lambda.invoke({
       FunctionName: functionName,
       Payload: JSON.stringify(payload),
     }).promise()
@@ -461,7 +457,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
   }
 
   public async listFunctions() {
-    const res = await this.lambda!.listFunctions({}).promise()
+    const res = await this.lambda.listFunctions({}).promise()
     return res.Functions
   }
 

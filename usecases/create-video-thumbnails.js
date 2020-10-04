@@ -74,7 +74,7 @@ async function main() {
 
   await lambda.createCommandFunction(
     'reshuffle-command-mediainfo',
-    await s3.getS3URL('mediainfo'),
+    { url: 'http://reshuffle-files.s3-website-us-west-1.amazonaws.com/mediainfo' },
   )
 
   // Get transcoder pipeline and preset info
