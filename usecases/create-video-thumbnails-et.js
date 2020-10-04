@@ -19,11 +19,8 @@ const AWS_ACCOUNT = {
 const AWS_REGION = process.env.AWS_DEFAULT_REGION
 
 // Before you run, set up S3:
-// 1. Create two S3 buckets.
+// 1. Create two S3 buckets
 // 2. Open the source bucket for public access
-// 3. Copy the mediainfo executable into the source bucket
-//    (you can download a precompiled version for AWS Lambda
-//    from https://mediaarea.net/en/MediaInfo)
 //
 // To run:
 // 1. Drop your video files into the source bucket
@@ -111,7 +108,7 @@ async function main() {
     }
 
     // Large files need to be transcoded into thumbnail size. Start
-    // the transcoding job here. We'll need to track its startus to
+    // the transcoding job here. We'll need to track its status to
     // find out when the thumbnail is ready
 
     console.log(`Video picture size: ${video.Width} x ${video.Height}`)

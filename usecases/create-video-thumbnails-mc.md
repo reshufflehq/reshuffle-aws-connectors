@@ -7,9 +7,7 @@ Not with Reshuffle!
 
 ## Ingredients:
 
-* __2__ [S3](https://aws.amazon.com/s3/) buckets
-
-* __1__ [Amazon Elastic Trasncoder](https://aws.amazon.com/elastictranscoder/) pipeline
+* __1__ [S3](https://aws.amazon.com/s3/) bucket
 
 * __1__ [mediainfo](https://mediaarea.net/en/MediaInfo) utility, [precompiled for lambda](https://mediaarea.net/download/binary/mediainfo/20.08/MediaInfo_CLI_20.08_Lambda.zip)
 
@@ -17,9 +15,8 @@ Not with Reshuffle!
 
 ## Preparation:
 
-1. Create two S3 buckets: source and target. Open source for public read
-
-1. Create an Elastic Transcoder pipeline to read from your source bucket and output into your target bucket
+1. Create an S3 bucket. Make it open for public read (in a real app, you can
+configure roles to real from closed buckets as well)
 
 1. Set up the following environment variables:
 
@@ -31,17 +28,11 @@ Not with Reshuffle!
 
 &nbsp;&nbsp;&nbsp;&nbsp;AWS_DEFAULT_BUCKET
 
-&nbsp;&nbsp;&nbsp;&nbsp;S3_SOURCE_BUCKET
-
-&nbsp;&nbsp;&nbsp;&nbsp;S3_TARGET_BUCKET
-
-&nbsp;&nbsp;&nbsp;&nbsp;ELASTIC_TRANSCODER_PIPELINE
-
 ## Workflow:
 
-1. Run [create-video-thumbnails.js](./create-video-thumbnails.js) on Reshuffle
+1. Run [create-video-thumbnails-mc.js](./create-video-thumbnails-mc.js) on Reshuffle
 
-1. Drop video file into your source S3 bucket
+1. Drop video file into your S3 bucket
 
 1. Reshuffle picks it up and uses Lambda to run the MediaInfo command line utility to get information on the video
 

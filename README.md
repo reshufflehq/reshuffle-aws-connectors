@@ -11,6 +11,8 @@ the implemented using the
 
 * [AWS Lambda Connector](doc/AWSLambdaConnector.md)
 
+* [AWS Media Convert](doc/AWSMediaConvertConnector.md)
+
 * [AWS S3 Connector](doc/AWSS3Connector.md)
 
 ## Examples
@@ -21,6 +23,8 @@ the implemented using the
 
 * [Lambda: Enqueue tasks](examples/lambda-enqueue-tasks.js)
 
+* [Media Convert](examples/media-convert.js)
+
 * [S3: List files](examples/s3-list-files.js)
 
 * [S3: Watch files](examples/s3-watch-files.js)
@@ -29,7 +33,9 @@ the implemented using the
 
 ## Use Cases
 
-* [Create video thumbnails](usecases/create-video-thumbnails.md)
+* [Create video thumbnails (Elastic Transcoder)](usecases/create-video-thumbnails-et.md)
+
+* [Create video thumbnails (Media Convert)](usecases/create-video-thumbnails-mc.md)
 
 ## Learn more
 
