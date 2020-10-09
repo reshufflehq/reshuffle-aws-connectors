@@ -13,7 +13,7 @@ const httpConnector = new HttpConnector(app)
 
 httpConnector.on({ method: 'GET', path: '/list' }, async (event) => {
   const keys = await s3Connector.listObjectKeys()
-  event.context.res.json(keys)
+  event.res.json(keys)
 })
 
 app.start(8000)

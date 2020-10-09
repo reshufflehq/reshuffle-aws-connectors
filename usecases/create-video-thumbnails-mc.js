@@ -151,7 +151,7 @@ async function main() {
   http.on({ method: 'GET', path: '/thumbnails' }, async (event) => {
     const keys = await s3.listObjectKeys(BUCKET)
     const thumbs = keys.filter((key) => key.endsWith('-thumbnail.mp4'))
-    event.context.res.json(thumbs)
+    event.res.json(thumbs)
   })
 
   // Let the games begin...

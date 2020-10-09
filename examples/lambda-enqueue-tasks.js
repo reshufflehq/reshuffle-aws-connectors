@@ -36,7 +36,7 @@ async function main() {
       { str: 'Natasha Romanova' },
       { str: 'Toni Stark' },
     ])
-    return event.context.res.json({ qid })
+    return event.res.json({ qid })
   })
 
   awsLambdaConnector.on({ type: 'QueueComplete' }, async (event) => {

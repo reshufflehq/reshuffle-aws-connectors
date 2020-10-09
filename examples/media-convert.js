@@ -15,9 +15,9 @@ async function main() {
   const httpConnector = new HttpConnector(app)
 
   httpConnector.on({ method: 'GET', path:'/go' }, async (event) => {
-    const filename = event.context.req.query.filename
+    const filename = event.req.query.filename
     if (!filename) {
-      return event.context.res.status(400).json({ error: 'No filename' })
+      return event.res.status(400).json({ error: 'No filename' })
     }
 
     const job = await awsMediaConvertConnector.createSingleJob(
@@ -40,7 +40,7 @@ async function main() {
       },
     )
 
-    return event.context.res.json({ jobId: job.Id })
+    return event.res.json({ jobId: job.Id })
   })
 
   awsMediaConvertConnector.on({ type: 'JobStatusChanged' }, async (event) => {

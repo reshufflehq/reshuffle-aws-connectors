@@ -32,7 +32,7 @@ async function main() {
       },
     })
 
-    return event.context.res.json({ jobId: job.Id, output })
+    return event.res.json({ jobId: job.Id, output })
   })
 
   awsElasticTranscoder.on({ pipelineId: pipeline.Id }, async (event) => {
