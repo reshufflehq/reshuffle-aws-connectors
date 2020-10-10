@@ -1,14 +1,82 @@
-# AWS Media Convert Connector
+# reshuffle-aws-connectors
+
+[Code](https://github.com/reshufflehq/reshuffle-aws-connectors) |
+[npm](https://www.npmjs.com/package/reshuffle-aws-connectors) |
+[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/examples)
+
+`npm install reshuffle-aws-connectors`
+
+### Reshuffle AWS Media Convert Connector
 
 This connector can be used to transcode video and audio using Amazon's
 Elemental Media Convert service. Complete information about the service API
 can be found [Elemental Media Convert](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MediaConvert.html).
 
-_Events_:
+The following examples provides two API endpoints, one for initiate a
+transcoding job and another for tracking its progress:
+
+```js
+const { HttpConnector, Reshuffle } = require('reshuffle')
+const { AWSMediaConvertConnector } = require('reshuffle-aws-connectors')
+
+;(async () => {
+  const bucket = process.env.AWS_DEFAULT_BUCKET
+
+  const app = new Reshuffle()
+  const awsMediaConvertConnector = new AWSMediaConvertConnector(app, {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_DEFAULT_REGION,
+  })
+  const httpConnector = new HttpConnector(app)
+
+  httpConnector.on({ method: 'GET', path:'/go' }, async (event) => {
+    const filename = event.req.query.filename
+    if (!filename) {
+      return event.res.status(400).json({ error: 'No filename' })
+    }
+
+    const job = await awsMediaConvertConnector.createSingleJob(
+      `s3://${bucket}/${filename}`,
+      `s3://${bucket}/${filename}-thumbnail`,
+      {
+        VideoDescription: {
+          Height: 200,
+          Width: 200,
+          CodecSettings: {
+            Codec: 'H_264',
+            H264Settings: {
+              Bitrate: 262144,
+            },
+          },
+        },
+        ContainerSettings: {
+          Container: 'MP4',
+        },
+      },
+    )
+
+    return event.res.json({ jobId: job.Id })
+  })
+
+  awsMediaConvertConnector.on({ type: 'JobStatusChanged' }, async (event) => {
+    console.log(`Job progress ${event.jobId}: ${
+      event.old.Status} -> ${event.current.Status}`)
+  })
+
+  app.start(8000)
+})()
+```
+
+#### Table of Contents
+
+[Configuration](#configuration) Configuration options
+
+_Connector events_:
 
 [jobStatusChanged](#jobStatusChanged) Job status changed
 
-_Actions_:
+_Connector actions_:
 
 [cancelJob](#cancelJob) Cancel a transcoding job
 
@@ -32,7 +100,7 @@ _SDK_:
 
 [sdk](#sdk) Get direct SDK access
 
-## Construction
+##### <a name="configuration"></a>Configuration options
 
 ```js
 const app = new Reshuffle()
@@ -43,9 +111,9 @@ const awsMediaConvertConnector = new AWSMediaConvertConnector(app, {
 })
 ```
 
-## Event Details
+#### Connector events
 
-### <a name="jobStatusChanged"></a>Job Status Changed event
+##### <a name="jobStatusChanged"></a>Job Status Changed event
 
 _Example:_
 
@@ -75,7 +143,7 @@ event object contains the followin information:
 Status is one of the following: `NEW`, `SUBMITTED`, `PROGRESSING`,
 `COMPLETE`, `CANCELED` or `ERROR`.
 
-## Action Details
+#### Connector actions
 
 ### <name="cancelJob"></a>Cancel Job action
 
@@ -290,9 +358,9 @@ Get information on past and active transcoding jobs as defined
 [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MediaConvert.html#listJobs-property),
 indexed by job Id.
 
-## SDK Details
+#### SDK Details
 
-### <a name="sdk"></a>SDK action
+##### <a name="sdk"></a>SDK action
 
 _Definition:_
 

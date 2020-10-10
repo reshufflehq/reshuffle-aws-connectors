@@ -1,12 +1,47 @@
-# AWS S3 Connector
+# reshuffle-aws-connectors
+
+[Code](https://github.com/reshufflehq/reshuffle-aws-connectors) |
+[npm](https://www.npmjs.com/package/reshuffle-aws-connectors) |
+[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/examples)
+
+`npm install reshuffle-aws-connectors`
+
+### Reshuffle AWS S3 Connector
 
 This connector can be used to manage AWS S3 buckets and objects. Full
 details on the S3 API can be found
 [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html).
 
-All actions throw in case of an error.
+The following example creates an API endpoint to list all files in an S3
+bucket:
 
-_Events_:
+```js
+const { HttpConnector, Reshuffle } = require('reshuffle')
+const { AWSS3Connector } = require('reshuffle-aws-connectors')
+
+const app = new Reshuffle()
+
+const s3Connector = new AWSS3Connector(app, {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  bucket: process.env.AWS_DEFAULT_BUCKET,
+})
+
+const httpConnector = new HttpConnector(app)
+
+httpConnector.on({ method: 'GET', path: '/list' }, async (event) => {
+  const keys = await s3Connector.listObjectKeys()
+  event.res.json(keys)
+})
+
+app.start(8000)
+```
+
+#### Table of Contents
+
+[Configuration](#configuration) Configuration options
+
+_Connector events_:
 
 [bucketInitialized](#bucketInitialized) Bucket traching initialized
 
@@ -18,7 +53,7 @@ _Events_:
 
 [objectRemoved](#objectRemoved) Object removed from bucket
 
-_Actions_:
+_Connector actions_:
 
 [listBuckets](#listBuckets) Get a list of bucket info objects
 
@@ -54,7 +89,7 @@ _SDK_:
 
 [sdk](#sdk) Get direct SDK access
 
-## Construction
+##### <a name="configuration"></a>Configuration options
 
 ```js
 const app = new Reshuffle()
@@ -65,9 +100,9 @@ const awsS3Connector = new AWSS3Connector(app, {
 })
 ```
 
-## Event Details
+#### Connector events
 
-### <a name="bucketInitialized"></a>Bucket Initialized event
+##### <a name="bucketInitialized"></a>Bucket Initialized event
 
 _Example:_
 
@@ -92,7 +127,7 @@ event nor the individual [objectAdded](#objectAdded) events are fired for
 the same objects. Subsequent additions or modification to the tracked
 bucket will generate those events.
 
-### <a name="bucketChanged"></a>Bucket Changed event
+##### <a name="bucketChanged"></a>Bucket Changed event
 
 _Event parameters:_
 
@@ -137,7 +172,7 @@ The `objects` argument has the following format:
 }
 ```
 
-### <a name="objectAdded"></a>Object Added event
+##### <a name="objectAdded"></a>Object Added event
 
 _Event parameters:_
 
@@ -176,7 +211,7 @@ The `object` info argument has the following format:
 }
 ```
 
-### <a name="objectModified"></a>Object Modified event
+##### <a name="objectModified"></a>Object Modified event
 
 _Event parameters:_
 
@@ -216,7 +251,7 @@ The `object` info argument has the following format:
 }
 ```
 
-### <a name="objectRemoved"></a>Object Removed event
+##### <a name="objectRemoved"></a>Object Removed event
 
 _Event parameters:_
 
@@ -256,9 +291,9 @@ The `object` info argument has the following format:
 }
 ```
 
-## Action Details
+#### Connector actions
 
-### <a name="listBuckets"></a>List Buckets action
+##### <a name="listBuckets"></a>List Buckets action
 
 _Definition:_
 
@@ -276,7 +311,7 @@ Get a list of
 [bucket information objects](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listBuckets-property)
 for accessible buckets.
 
-### <a name="listBucketNames"></a>List Bucket Names action
+##### <a name="listBucketNames"></a>List Bucket Names action
 
 _Definition:_
 
@@ -292,7 +327,7 @@ const names = await awsS3Connector.listBucketNames()
 
 Get a list of accessible bucket names.
 
-### <a name="createBucket"></a>Create Bucket action
+##### <a name="createBucket"></a>Create Bucket action
 
 _Definition:_
 
@@ -311,7 +346,7 @@ await awsS3Connector.createBucket('my-bucket-name', 'us-west-1')
 
 Create a new bucket.
 
-### <a name="deleteBucket"></a>Delete Bucket action
+##### <a name="deleteBucket"></a>Delete Bucket action
 
 _Definition:_
 
@@ -329,7 +364,7 @@ await awsS3Connector.deleteBucket('my-bucket-name')
 
 Delete a bucket.
 
-### <a name="listObjects"></a>List Objects action
+##### <a name="listObjects"></a>List Objects action
 
 _Definition:_
 
@@ -349,7 +384,7 @@ Get a list of
 [object information objects](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjects-property)
 for objects in the specified bucket.
 
-### <a name="listObjectKeys"></a>List Object Keys action
+##### <a name="listObjectKeys"></a>List Object Keys action
 
 _Definition:_
 
@@ -367,7 +402,7 @@ const keys = await awsS3Connector.listObjectKeys()
 
 Get a list of object keys in the specified bucket.
 
-### <a name="copyObject"></a>Copy Object action
+##### <a name="copyObject"></a>Copy Object action
 
 _Definition:_
 
@@ -394,7 +429,7 @@ const result = await awsS3Connector.copyObject(
 Create a new copy of an existing object. Returns a
 [copy result](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#copyObject-property).
 
-### <a name="deleteObject"></a>Delete Object action
+##### <a name="deleteObject"></a>Delete Object action
 
 _Definition:_
 
@@ -413,7 +448,7 @@ await awsS3Connector.deleteObject('my-bucket-name', 'no-longer-needed.txt')
 
 Delete an object from the specified bucket.
 
-### <a name="getObject"></a>Get Object action
+##### <a name="getObject"></a>Get Object action
 
 _Definition:_
 
@@ -433,7 +468,7 @@ const info = await awsS3Connector.getObject('my-bucket-name', 'image.png')
 Get information about an object, including its contents, as defined
 [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObject-property).
 
-### <a name="putObject"></a>Put Object action
+##### <a name="putObject"></a>Put Object action
 
 _Definition:_
 
@@ -458,7 +493,7 @@ const info = await awsS3Connector.putObject(
 Returns information about the new object, as defined
 [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property).
 
-### <a name="getSignedURL"></a>Get Signed URL action
+##### <a name="getSignedURL"></a>Get Signed URL action
 
 _Definition:_
 
@@ -481,7 +516,7 @@ access an object without requiring any credentials.
 
 The URL is valid for a limited time, as specified by `expires` in seconds.
 
-### <a name="getSignedObjectGetURL"></a>Get Signed Object Get URL action
+##### <a name="getSignedObjectGetURL"></a>Get Signed Object Get URL action
 
 _Definition:_
 
@@ -503,7 +538,7 @@ download the content of an object without requiring any credentials.
 
 The URL is valid for a limited time, as specified by `expires` in seconds.
 
-### <a name="getSignedObjectPutURL"></a>Get Signed Object Put URL action
+##### <a name="getSignedObjectPutURL"></a>Get Signed Object Put URL action
 
 _Definition:_
 
@@ -525,7 +560,7 @@ HTTP request to create a new object without requiring any credentials.
 
 The URL is valid for a limited time, as specified by `expires` in seconds.
 
-### <a name="getS3URL"></a>Get S3 URL action
+##### <a name="getS3URL"></a>Get S3 URL action
 
 _Definition:_
 
@@ -545,7 +580,7 @@ const url = await awsS3Connector.getS3URL('image.png')
 Get an S3 object URL in the form "s3://<bucket>//<key>". If `bucket` is omitted
 then the valude from the connector options is used.
 
-### <a name="getWebURL"></a>Get Web URL action
+##### <a name="getWebURL"></a>Get Web URL action
 
 _Definition:_
 
@@ -569,9 +604,9 @@ This URL is only valid if the specified S3 bucket is configured for web access.
 The action does not configure the bucket for web access nor does it validate
 that such access is enabled.
 
-## SDK Details
+#### SDK
 
-### <a name="sdk"></a>SDK action
+##### <a name="sdk"></a>SDK action
 
 _Definition:_
 
