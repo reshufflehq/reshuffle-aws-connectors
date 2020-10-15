@@ -8,7 +8,7 @@
 
 ### Reshuffle AWS Media Convert Connector
 
-This connector can be used to transcode video and audio using Amazon's
+This [Reshuffle](https://dev.reshuffle.com) connector can be used to transcode video and audio using Amazon's
 Elemental Media Convert service. Complete information about the service API
 can be found [Elemental Media Convert](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MediaConvert.html).
 
