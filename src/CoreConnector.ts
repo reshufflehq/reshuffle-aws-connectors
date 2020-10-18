@@ -110,7 +110,7 @@ export class CorePersistentStore implements PersistentStore {
 }
 
 const INTERVAL_DELAY_MS =
-  parseInt(process.env.RESHUFFLE_INTERVAL_DELAY_MS || '10000', 10)
+  parseInt(process.env.RESHUFFLE_INTERVAL_DELAY_MS || '30000', 10)
 
 export class CoreConnector extends BaseConnector {
   protected eventManager = new CoreEventManager(this)
