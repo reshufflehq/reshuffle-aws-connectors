@@ -50,7 +50,7 @@ const app = new Reshuffle()
 
 app.setPersistentStore(new MemoryStoreAdapter())
 
-async function main() {
+;(async () => {
 
   // Create connections to Elastic Transcoder, Lambda and S3
 
@@ -66,13 +66,6 @@ async function main() {
     ...AWS_ACCOUNT,
     bucket: S3_SOURCE_BUCKET,
   })
-
-  // Create a Lambda function to run the mediainfo utility
-
-  await lambda.createCommandFunction(
-    'reshuffle-command-mediainfo',
-    { url: 'http://reshuffle-files.s3-website-us-west-1.amazonaws.com/mediainfo' },
-  )
 
   // Get transcoder pipeline and preset info
 
@@ -92,11 +85,13 @@ async function main() {
     const thumbnail = `${filename}-thumbnail.mp4`
     console.log('Creating thumbnail:', filename, '->', thumbnail)
 
-    // Run MediaInfo on Lambda to get video details
+    // Run MediaInfo on Lambda to get video details (first time could take
+    //  a minute to deploy the Lambda function)
 
     const url = await s3.getS3URL(filename)
     const mediaInfo = await lambda.command(
       'reshuffle-command-mediainfo',
+      'http://reshuffle-files.s3-website-us-west-1.amazonaws.com/mediainfo',
       `mediainfo --output=JSON ${filename}`,
       url,
     )
@@ -167,6 +162,5 @@ async function main() {
   // Let the games begin...
 
   app.start(8000)
-}
 
-main()
+})().catch(console.error)

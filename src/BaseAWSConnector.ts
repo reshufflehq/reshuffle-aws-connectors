@@ -46,7 +46,7 @@ export function validateSecretAccessKey(secretAccessKey: string): string {
 }
 
 export function validateURL(url: string): string {
-  if (typeof url !== 'string' || url.length === 0) {
+  if (!/^https?:\/\/([^:]+(:[^@]+)?@)?[0-9a-zA-Z_-]+(\.[0-9a-zA-Z_-]+)*(\/[\.0-9a-zA-Z_-]+)*\/?$/.test(url)) {
     throw new Error(`Invalid URL: ${url}`)
   }
   return url

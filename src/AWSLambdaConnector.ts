@@ -135,17 +135,91 @@ export class AWSLambdaConnector extends BaseAWSConnector {
 
   public async command(
     functionName: string,
+    executable: string,
     command: string,
     files: string | string[] = [],
+    options: Options = {},
   ): Promise<any> {
     if (typeof command !== 'string' || command.trim().length === 0) {
       throw new Error(`Invalid commmand: ${command}`)
     }
+
+    if (typeof executable === 'string' && executable.startsWith('http')) {
+      validateURL(executable)
+    } else if (typeof executable === 'string' && executable.startsWith('s3')) {
+      validateS3URL(executable)
+    } else {
+      throw new Error(`Invalid executable: ${executable}`)
+    }
+
     const urls = Array.isArray(files) ? files : [files]
     for (const url of urls) {
       validateS3URL(url)
     }
+
+    await this.commandCreateFunction(functionName, executable, options)
     return this.invoke(functionName, { command, urls })
+  }
+
+  private async commandCreateFunction(
+    functionName: string,
+    executable: string,
+    options: Options,
+  ) {
+    if (!options.force) {
+      const info = await this.getFunctionInfo(functionName)
+      if (info) {
+        if (info.Tags[COMMAND_TAG_NAME] !== COMMAND_TAG_VALUE) {
+          throw new Error(
+            `Lambda exists but is not a command function: ${functionName}`
+          )
+        }
+        console.log(`${functionName}: Using existing Lambda function`)
+        return
+      }
+    }
+
+    const folder = new Folder(
+      `reshuffle-awslambdaconnector-${crypto.randomBytes(8).toString('hex')}`
+    )
+
+    try {
+      console.log(`${functionName}: Building code tree`)
+      await folder.copy('index.js', `${__dirname}/lambda-command.js`)
+      await folder.copy('Folder.js', `${__dirname}/Folder.js`)
+      await folder.write('package.json', JSON.stringify({
+        main: 'index.js',
+        dependencies: {
+          'aws-sdk': '^2.741.0',
+          jszip: '^3.5.0',
+          'node-fetch': '^2.6.0',
+          rimraf: '^3.0.2',
+        },
+      }))
+      await folder.exec('npm install')
+
+      console.log(`${functionName}: Building deployment package`)
+      const buffer = await folder.zip()
+      console.log(`${functionName}: Package size ${buffer.length} bytes`)
+
+      console.log(`${functionName}: Deploying to Lambda`)
+      const func = await this.createFromBuffer(functionName, buffer, {
+        ...options,
+        env: {
+          ...(options.env || {}),
+          EXECUTABLE: executable,
+        },
+        tags: {
+          ...(options.tags || {}),
+          [COMMAND_TAG_NAME]: COMMAND_TAG_VALUE,
+        },
+        timeout: options.timeout || 300,
+      }) // must explicitly await for finally
+      return func
+
+    } finally {
+      await folder.destroy()
+    }
   }
 
   public async create(
@@ -197,75 +271,6 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     }
 
     return zipOne('index.js', payload.code)
-  }
-
-  public async createCommandFunction(
-    functionName: string,
-    executable: Record<string, any>,
-    options: Options = {},
-  ) {
-    if (typeof executable.s3 === 'string') {
-      validateS3URL(executable.s3)
-    } else if (typeof executable.url === 'string') {
-      validateURL(executable.url)
-    } else {
-      throw new Error(`Invalid executable: ${executable}`)
-    }
-
-    if (!options.force) {
-      const info = await this.getFunctionInfo(functionName)
-      if (info) {
-        if (info.Tags[COMMAND_TAG_NAME] !== COMMAND_TAG_VALUE) {
-          throw new Error(
-            `Lambda exists but is not a command function: ${functionName}`
-          )
-        }
-        console.log(`${functionName}: Using existing Lambda function`)
-        return
-      }
-    }
-
-    const folder = new Folder(
-      `reshuffle-awslambdaconnector-${crypto.randomBytes(8).toString('hex')}`
-    )
-
-    try {
-      console.log(`${functionName}: Building code tree`)
-      await folder.copy('index.js', `${__dirname}/lambda-command.js`)
-      await folder.copy('Folder.js', `${__dirname}/Folder.js`)
-      await folder.write('package.json', JSON.stringify({
-        main: 'index.js',
-        dependencies: {
-          'aws-sdk': '^2.741.0',
-          jszip: '^3.5.0',
-          'node-fetch': '^2.6.0',
-          rimraf: '^3.0.2',
-        },
-      }))
-      await folder.exec('npm install')
-
-      console.log(`${functionName}: Building deployment package`)
-      const buffer = await folder.zip()
-      console.log(`${functionName}: Package size ${buffer.length} bytes`)
-
-      console.log(`${functionName}: Deploying to Lambda`)
-      const func = await this.createFromBuffer(functionName, buffer, {
-        ...options,
-        env: {
-          ...(options.env || {}),
-          EXECUTABLE: JSON.stringify(executable),
-        },
-        tags: {
-          ...(options.tags || {}),
-          [COMMAND_TAG_NAME]: COMMAND_TAG_VALUE,
-        },
-        timeout: options.timeout || 300,
-      }) // must explicitly await for finally
-      return func
-
-    } finally {
-      await folder.destroy()
-    }
   }
 
   public async createFromBuffer(

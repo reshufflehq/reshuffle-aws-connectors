@@ -54,20 +54,19 @@ export async function handler(event: any) {
 
   // Cache the executable from S3 or URL into a local folder
   const exeFolder = new Folder('executable', true)
-  const executable = JSON.parse(process.env.EXECUTABLE!)
+  const executable: string = process.env.EXECUTABLE!
   console.log('Executable:', executable)
-  const exe = executable.s3 ?
-    splitS3Url(executable.s3)[1] :
-    splitUrl(executable.url)[1]
+  const s3exe = executable.startsWith('s3')
+  const exe = s3exe ? splitS3Url(executable)[1] : splitUrl(executable)[1]
   if (await exeFolder.contains(exe)) {
     console.log('Found executable:', exe)
   } else {
-    if (executable.s3) {
-      console.log('Copying executable from S3:', executable.s3)
-      await getObjectFromS3(exeFolder, executable.s3)
+    if (s3exe) {
+      console.log('Copying executable from S3:', executable)
+      await getObjectFromS3(exeFolder, executable)
     } else {
-      console.log('Downloading executable from:', executable.url)
-      await downloadObject(exeFolder, exe, executable.url)
+      console.log('Downloading executable from:', executable)
+      await downloadObject(exeFolder, exe, executable)
     }
     await exeFolder.exec(`chmod 0755 ${exe}`)
   }
@@ -101,13 +100,9 @@ export async function handler(event: any) {
   }
 }
 
-// process.env.EXECUTABLE = JSON.stringify({
+// process.env.EXECUTABLE =
 //   // s3: 's3://reshuffle-files/mediainfo',
-//   url: 'https://mediaarea.net/download/binary/media' +
-//        'info/20.08/MediaInfo_CLI_20.08_Lambda.zip',
-//   run: 'unzip * && mv bin/mediainfo .',
-//   exe: 'mediainfo',
-// })
+//   'http://reshuffle-files.s3-website-us-west-1.amazonaws.com/mediainfo'
 // handler({
 //   command: 'mediainfo --output=JSON lemons.mp4',
 //   urls: [
