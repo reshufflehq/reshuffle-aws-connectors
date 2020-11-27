@@ -11,7 +11,7 @@
 This [Reshuffle](https://dev.reshuffle.com) connector can be used to send messages.
 [AWS SNS documentation](https://docs.aws.amazon.com/sns/index.html).
 
-The following example send a message when Reshuffle receives an HTTP request on /send
+The following example send a message via AWS SNS when Reshuffle receives an HTTP request on /send
 
 ```js
 const { HttpConnector, Reshuffle } = require('reshuffle')
