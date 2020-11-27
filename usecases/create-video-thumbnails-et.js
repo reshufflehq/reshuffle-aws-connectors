@@ -1,8 +1,4 @@
-const {
-  HttpConnector,
-  MemoryStoreAdapter,
-  Reshuffle,
-} = require('reshuffle')
+const { HttpConnector, MemoryStoreAdapter, Reshuffle } = require('reshuffle')
 
 const {
   AWSElasticTranscoderConnector,
@@ -49,9 +45,7 @@ const app = new Reshuffle()
 // This will allow connectors to track their state in memory:
 
 app.setPersistentStore(new MemoryStoreAdapter())
-
 ;(async () => {
-
   // Create connections to Elastic Transcoder, Lambda and S3
 
   const aet = new AWSElasticTranscoderConnector(app, {
@@ -78,7 +72,6 @@ app.setPersistentStore(new MemoryStoreAdapter())
   // the file to the target bucket
 
   s3.on({ type: 'ObjectAdded' }, async (event) => {
-
     // Get the file name and create the thumbnail name
 
     const filename = event.key
@@ -95,7 +88,7 @@ app.setPersistentStore(new MemoryStoreAdapter())
       `mediainfo --output=JSON ${filename}`,
       url,
     )
-    const video = mediaInfo.media.track.find(e => e['@type'] === 'Video')
+    const video = mediaInfo.media.track.find((e) => e['@type'] === 'Video')
 
     if (!video) {
       console.log('Not a video file:', filename)
@@ -125,14 +118,8 @@ app.setPersistentStore(new MemoryStoreAdapter())
 
     // Small enough files are simply copied. Copy is faily fast so
     // we can wait for it to complete and then the thumbnail is ready
-
     else {
-      await s3.copyObject(
-        S3_SOURCE_BUCKET,
-        filename,
-        S3_TARGET_BUCKET,
-        thumbnail,
-      )
+      await s3.copyObject(S3_SOURCE_BUCKET, filename, S3_TARGET_BUCKET, thumbnail)
       console.log('Original copied to thumbnail:', thumbnail)
     }
   })
@@ -141,8 +128,9 @@ app.setPersistentStore(new MemoryStoreAdapter())
   // thumbnail is ready
 
   aet.on({ pipelineId: pipeline.Id }, async (event) => {
-    console.log(`Trancoding job ${event.jobId}: ${
-      event.old.Status || 'New'} -> ${event.current.Status}`)
+    console.log(
+      `Trancoding job ${event.jobId}: ${event.old.Status || 'New'} -> ${event.current.Status}`,
+    )
 
     if (event.current.Status === 'Complete') {
       console.log('Created thumbnail:', event.current.Output.Key)
@@ -162,5 +150,4 @@ app.setPersistentStore(new MemoryStoreAdapter())
   // Let the games begin...
 
   app.start(8000)
-
 })().catch(console.error)

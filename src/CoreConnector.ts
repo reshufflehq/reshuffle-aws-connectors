@@ -17,17 +17,17 @@ export type CoreEventMapper = (ec: EventConfiguration) => any
 export class CoreEventManager {
   private eventConfigurationSet: Record<string, EventConfiguration> = {}
 
-  constructor(private connector: BaseConnector) {
-  }
+  constructor(private connector: BaseConnector) {}
 
   public addEvent(
     eventOptions: any,
     handler: CoreEventHandler,
     eventId: string | Record<string, any>,
   ): EventConfiguration {
-    const id = typeof eventId == 'string' ? eventId :
-      `${this.connector.constructor.name}:${
-        objhash(eventId)}:${this.connector.id}`
+    const id =
+      typeof eventId == 'string'
+        ? eventId
+        : `${this.connector.constructor.name}:${objhash(eventId)}:${this.connector.id}`
     const ec = new EventConfiguration(id, this.connector, eventOptions)
     this.eventConfigurationSet[ec.id] = ec
     this.connector.app.when(ec, handler as any)
@@ -109,8 +109,7 @@ export class CorePersistentStore implements PersistentStore {
   }
 }
 
-const INTERVAL_DELAY_MS =
-  parseInt(process.env.RESHUFFLE_INTERVAL_DELAY_MS || '30000', 10)
+const INTERVAL_DELAY_MS = parseInt(process.env.RESHUFFLE_INTERVAL_DELAY_MS || '30000', 10)
 
 export class CoreConnector extends BaseConnector {
   protected eventManager = new CoreEventManager(this)

@@ -46,10 +46,7 @@ export async function handler(event: any) {
     if (!res.ok) {
       throw new Error(`Error ${res.status} ${res.statusText}: ${url}`)
     }
-    await pipeline(
-      res.body,
-      fs.createWriteStream(folder.path(fn)),
-    )
+    await pipeline(res.body, fs.createWriteStream(folder.path(fn)))
   }
 
   // Cache the executable from S3 or URL into a local folder
@@ -78,7 +75,6 @@ export async function handler(event: any) {
   await filesFolder.init()
 
   try {
-
     // Load data files into temporary folder
     for (const url of event.urls) {
       console.log('Loading data:', url)
@@ -93,7 +89,6 @@ export async function handler(event: any) {
     // Return the standard output
     console.log('Output:', stdout)
     return { statusCode: 200, body: stdout }
-
   } finally {
     // Cleanup data files
     await filesFolder.destroy()
