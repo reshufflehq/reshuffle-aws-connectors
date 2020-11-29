@@ -15,15 +15,17 @@ type PipelineStatusSet = Record<string, JobSet>
 export type Pipeline = Record<string, any>
 export type Preset = Record<string, any>
 
-function search(array: Record<string, any>[], field: string, token: string) {
+function search(array: Array<Record<string, any>>, field: string, token: string) {
   if (typeof token !== 'string' || token.length === 0) {
     throw new Error(`Token must be a non-empty string: ${token}`)
   }
   const lower = token.toLowerCase()
-  return array.find((p) => p[field] === token) ||
-         array.find((p) => p[field].toLowerCase() === lower) ||
-         array.find((p) => p[field].startsWith(token)) ||
-         array.find((p) => p[field].includes(token))
+  return (
+    array.find((p) => p[field] === token) ||
+    array.find((p) => p[field].toLowerCase() === lower) ||
+    array.find((p) => p[field].startsWith(token)) ||
+    array.find((p) => p[field].includes(token))
+  )
 }
 
 export class AWSElasticTranscoderConnector extends BaseAWSConnector {
@@ -39,11 +41,7 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
 
   // Events /////////////////////////////////////////////////////////
 
-  public on(
-    options: EventOptions,
-    handler: CoreEventHandler,
-    eventId?: string,
-  ) {
+  public on(options: EventOptions, handler: CoreEventHandler, eventId?: string) {
     if (!/^\d{13}-[a-z]{6}$/.test(options.pipelineId)) {
       throw new Error(`Invalid pipeline ID: ${options.pipelineId}`)
     }
@@ -52,26 +50,20 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
   }
 
   protected async onInterval() {
-    const ids = this.eventManager.mapEvents(
-      (ec) => ec.options.pipelineId
-    ) as string[]
+    const ids = this.eventManager.mapEvents((ec) => ec.options.pipelineId) as string[]
 
-    const [oldPipelines, newPipelines] = await this.store.update(
-      'pipelines',
-      async () => Object.fromEntries(
-        await Promise.all(ids.map((id) => this.getJobs(id)))
-      ),
-    ) as PipelineStatusSet[]
+    const [oldPipelines, newPipelines] = (await this.store.update('pipelines', async () =>
+      Object.fromEntries(await Promise.all(ids.map((id) => this.getJobs(id)))),
+    )) as PipelineStatusSet[]
 
     for (const [pipelineId, newJobs] of Object.entries(newPipelines)) {
       const oldJobs = (oldPipelines || {})[pipelineId]
 
-      const updates = Object
-        .values(newJobs)
+      const updates = Object.values(newJobs)
         .filter((job) =>
-          oldJobs ?
-            job.Status !== (oldJobs[job.Id] || {}).Status :
-            job.Status === 'Submitted' || job.Status === 'Progressing'
+          oldJobs
+            ? job.Status !== (oldJobs[job.Id] || {}).Status
+            : job.Status === 'Submitted' || job.Status === 'Progressing',
         )
         .map((job) => ({
           jobId: job.Id,
@@ -79,10 +71,7 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
           old: (oldJobs || {})[job.Id] || { Id: job.Id, Status: 'New' },
         }))
 
-      await this.eventManager.fire(
-        (ec) => ec.options.pipelineId === pipelineId,
-        updates,
-      )
+      await this.eventManager.fire((ec) => ec.options.pipelineId === pipelineId, updates)
     }
   }
 

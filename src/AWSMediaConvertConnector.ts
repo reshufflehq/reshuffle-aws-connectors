@@ -54,11 +54,7 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
 
   // Events /////////////////////////////////////////////////////////
 
-  public on(
-    options: EventOptions,
-    handler: CoreEventHandler,
-    eventId?: string,
-  ) {
+  public on(options: EventOptions, handler: CoreEventHandler, eventId?: string) {
     if (options.type !== 'JobStatusChanged') {
       throw new Error(`Invalid event type: ${options.type}`)
     }
@@ -67,10 +63,9 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
   }
 
   protected async onInterval() {
-    const [oldJobs, newJobs] = await this.store.update(
-      'jobs',
-      () => this.listJobsById(),
-    ) as JobSet[]
+    const [oldJobs, newJobs] = (await this.store.update('jobs', () =>
+      this.listJobsById(),
+    )) as JobSet[]
 
     if (oldJobs) {
       for (const job of Object.values(newJobs)) {
@@ -83,10 +78,11 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
   }
 
   private fireJobStatusChanged(job: Job, old: Job) {
-    return this.eventManager.fire(
-      (ec) => ec.options.type === 'JobStatusChanged',
-      { jobId: job.Id, old, current: job },
-    )
+    return this.eventManager.fire((ec) => ec.options.type === 'JobStatusChanged', {
+      jobId: job.Id,
+      old,
+      current: job,
+    })
   }
 
   // Actions ////////////////////////////////////////////////////////
@@ -107,13 +103,10 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
 
     await this.fireJobStatusChanged(job, { Id: job.Id, Status: 'NEW' })
 
-    await this.store.update(
-      'jobs',
-      (jobs = {}) => {
-        jobs[job.Id] = job
-        return jobs
-      },
-    )
+    await this.store.update('jobs', (jobs = {}) => {
+      jobs[job.Id] = job
+      return jobs
+    })
 
     return job
   }
@@ -133,7 +126,8 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
     })
   }
 
-  public async createSingleJob(src: string,
+  public async createSingleJob(
+    src: string,
     dst: string,
     output: Record<string, any>,
     settings?: Record<string, any>,

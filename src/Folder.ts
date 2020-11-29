@@ -61,7 +61,7 @@ export class Folder {
     return fs.writeFile(`${this.base}/${targetName}`, data, 'utf-8')
   }
 
-  public async zip(options: any = {}) : Promise<Buffer> {
+  public async zip(options: any = {}): Promise<Buffer> {
     const zip = new JSZip()
 
     const addFilesInDirectory = async (dir = '') => {

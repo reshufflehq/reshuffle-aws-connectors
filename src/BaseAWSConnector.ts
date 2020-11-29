@@ -15,14 +15,23 @@ export function validateAccesKeyId(accessKeyId: string): string {
 }
 
 export function validateBucket(bucket: string): string {
-  if (!bucket || !/(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)/.test(bucket)) {
+  if (
+    !bucket ||
+    !/(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)/.test(
+      bucket,
+    )
+  ) {
     throw new Error(`Invalid bucket: ${bucket}`)
   }
   return bucket
 }
 
 export function validateRegion(region: string): string {
-  if (!/^(af|ap|ca|cn|eu|me|sa|us|us-gov)-(central|east|north|northeast|northwest|south|southeast|southwest|west)-\d$/.test(region)) {
+  if (
+    !/^(af|ap|ca|cn|eu|me|sa|us|us-gov)-(central|east|north|northeast|northwest|south|southeast|southwest|west)-\d$/.test(
+      region,
+    )
+  ) {
     throw new Error(`Invalid region: ${region}`)
   }
   return region
@@ -46,7 +55,11 @@ export function validateSecretAccessKey(secretAccessKey: string): string {
 }
 
 export function validateURL(url: string): string {
-  if (!/^https?:\/\/([^:]+(:[^@]+)?@)?[0-9a-zA-Z_-]+(\.[0-9a-zA-Z_-]+)*(\/[\.0-9a-zA-Z_-]+)*\/?$/.test(url)) {
+  if (
+    !/^https?:\/\/([^:]+(:[^@]+)?@)?[0-9a-zA-Z_-]+(\.[0-9a-zA-Z_-]+)*(\/[\.0-9a-zA-Z_-]+)*\/?$/.test(
+      url,
+    )
+  ) {
     throw new Error(`Invalid URL: ${url}`)
   }
   return url
@@ -88,8 +101,7 @@ export interface AWSPolicyStatement {
 }
 
 class AWSIdentity {
-  constructor(private account: AWSAccount) {
-  }
+  constructor(private account: AWSAccount) {}
 
   public createPolicy(statements: AWSPolicyStatement | AWSPolicyStatement[]) {
     const sts = Array.isArray(statements) ? statements : [statements]
@@ -104,65 +116,63 @@ class AWSIdentity {
     }
   }
 
-  public createSimplePolicy(
-    resource: string,
-    action: string[],
-    effect = 'Allow',
-  ) {
+  public createSimplePolicy(resource: string, action: string[], effect = 'Allow') {
     return this.createPolicy({ effect, resource, action })
   }
 
   public async getOrCreateServiceRole(
     roleName: string,
     service: string,
-    policies?: string | Record<string, any> | (string | Record<string, any>)[],
+    policies?: string | Record<string, any> | Array<string | Record<string, any>>,
   ) {
     const iam = this.account.getClient('IAM')
 
     try {
       const res = await iam.getRole({ RoleName: roleName }).promise()
       return res.Role
-
     } catch (e) {
       if (e.code !== 'NoSuchEntity') {
         throw e
       }
 
       console.log(`Creating IAM role for service ${service}: ${roleName}`)
-      const res = await iam.createRole({
-        RoleName: roleName,
-        AssumeRolePolicyDocument: JSON.stringify({
-          Version: '2012-10-17',
-          Statement: [
-            {
-              Effect: 'Allow',
-              Principal: {
-                Service: service,
+      const res = await iam
+        .createRole({
+          RoleName: roleName,
+          AssumeRolePolicyDocument: JSON.stringify({
+            Version: '2012-10-17',
+            Statement: [
+              {
+                Effect: 'Allow',
+                Principal: {
+                  Service: service,
+                },
+                Action: 'sts:AssumeRole',
               },
-              Action: 'sts:AssumeRole',
-            },
-          ],
-        }),
-      }).promise()
+            ],
+          }),
+        })
+        .promise()
 
       const policiesArray =
-        policies === undefined ? [] :
-        Array.isArray(policies) ? policies :
-        [policies]
+        policies === undefined ? [] : Array.isArray(policies) ? policies : [policies]
 
       for (const policy of policiesArray) {
         if (typeof policy === 'string') {
-          await iam.attachRolePolicy({
-            RoleName: roleName,
-            PolicyArn: policy,
-          }).promise()
+          await iam
+            .attachRolePolicy({
+              RoleName: roleName,
+              PolicyArn: policy,
+            })
+            .promise()
         } else {
-          await iam.putRolePolicy({
-            PolicyDocument: JSON.stringify(policy),
-            PolicyName: `policy_${roleName}_${
-              crypto.randomBytes(4).toString('hex')}`,
-            RoleName: roleName,
-          }).promise()
+          await iam
+            .putRolePolicy({
+              PolicyDocument: JSON.stringify(policy),
+              PolicyName: `policy_${roleName}_${crypto.randomBytes(4).toString('hex')}`,
+              RoleName: roleName,
+            })
+            .promise()
         }
       }
 

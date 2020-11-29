@@ -27,9 +27,11 @@ export class AWSS3Connector extends BaseAWSConnector {
 
   private async getRegionalClient() {
     if (!this.rs3) {
-      const res = await this.s3.getBucketLocation({
-        Bucket: this.bucket,
-      }).promise()
+      const res = await this.s3
+        .getBucketLocation({
+          Bucket: this.bucket,
+        })
+        .promise()
       const region = res.LocationConstraint
       this.rs3 = region ? this.account.getClient('S3', { region }) : this.s3
     }
@@ -38,16 +40,14 @@ export class AWSS3Connector extends BaseAWSConnector {
 
   // Events /////////////////////////////////////////////////////////
 
-  public on(
-    options: EventOptions,
-    handler: CoreEventHandler,
-    eventId?: string,
-  ) {
-    if (options.type !== 'BucketChanged' &&
-        options.type !== 'BucketInitialized' &&
-        options.type !== 'ObjectAdded' &&
-        options.type !== 'ObjectModified' &&
-        options.type !== 'ObjectRemoved') {
+  public on(options: EventOptions, handler: CoreEventHandler, eventId?: string) {
+    if (
+      options.type !== 'BucketChanged' &&
+      options.type !== 'BucketInitialized' &&
+      options.type !== 'ObjectAdded' &&
+      options.type !== 'ObjectModified' &&
+      options.type !== 'ObjectRemoved'
+    ) {
       throw new Error(`Invalid event type: ${options.type}`)
     }
     const eid = eventId || { account: this.account, options }
@@ -55,45 +55,35 @@ export class AWSS3Connector extends BaseAWSConnector {
   }
 
   protected async onInterval() {
-    const [oldObjects, newObjects] = await this.store.update(
-      this.bucket,
-      () => this.getObjectsInBucket()
+    const [oldObjects, newObjects] = await this.store.update(this.bucket, () =>
+      this.getObjectsInBucket(),
     )
 
     if (!oldObjects) {
-      await this.eventManager.fire(
-        (ec) => ec.options.type === 'BucketInitialized',
-        { objects: newObjects },
-      )
+      await this.eventManager.fire((ec) => ec.options.type === 'BucketInitialized', {
+        objects: newObjects,
+      })
       return
     }
 
     const diff = this.diffBuckets(oldObjects, newObjects)
     if (0 < diff.changeCount) {
-      await this.eventManager.fire(
-        (ec) => ec.options.type === 'BucketChanged',
-        { objects: newObjects },
-      )
-      await this.eventManager.fire(
-        (ec) => ec.options.type === 'ObjectAdded',
-        diff.additions,
-      )
-      await this.eventManager.fire(
-        (ec) => ec.options.type === 'ObjectModified',
-        diff.modifications,
-      )
-      await this.eventManager.fire(
-        (ec) => ec.options.type === 'ObjectRemoved',
-        diff.removals,
-      )
+      await this.eventManager.fire((ec) => ec.options.type === 'BucketChanged', {
+        objects: newObjects,
+      })
+      await this.eventManager.fire((ec) => ec.options.type === 'ObjectAdded', diff.additions)
+      await this.eventManager.fire((ec) => ec.options.type === 'ObjectModified', diff.modifications)
+      await this.eventManager.fire((ec) => ec.options.type === 'ObjectRemoved', diff.removals)
     }
   }
 
   private async getObjectsInBucket() {
     // This only works up to 1000 objects
-    const res = await this.s3.listObjectsV2({
-      Bucket: this.bucket,
-    }).promise()
+    const res = await this.s3
+      .listObjectsV2({
+        Bucket: this.bucket,
+      })
+      .promise()
     if (!res.Contents) {
       return {}
     }
@@ -128,11 +118,7 @@ export class AWSS3Connector extends BaseAWSConnector {
     function likelyTheSameObject(o1: S3Object, o2: S3Object): boolean {
       // eTag comparison only works if objects are uploaded with
       // a single API request, as opposed to multipart uploads
-      return (
-        o1.eTag === o2.eTag &&
-        o1.lastModified === o2.lastModified &&
-        o1.size === o2.size
-      )
+      return o1.eTag === o2.eTag && o1.lastModified === o2.lastModified && o1.size === o2.size
     }
 
     const additions: S3Object[] = []
@@ -182,10 +168,10 @@ export class AWSS3Connector extends BaseAWSConnector {
   public async createBucket(bucket: string, region: string) {
     const cfg = region
       ? {
-        CreateBucketConfiguration: {
-          LocationConstraint: region,
-        },
-      }
+          CreateBucketConfiguration: {
+            LocationConstraint: region,
+          },
+        }
       : {}
     await this.s3.createBucket({ Bucket: bucket, ...cfg }).promise()
   }
@@ -209,7 +195,7 @@ export class AWSS3Connector extends BaseAWSConnector {
     sourceBucket: string,
     sourceKey: string,
     targetBucket: string,
-    targetKey: string
+    targetKey: string,
   ) {
     const req = {
       CopySource: `/${sourceBucket}/${sourceKey}`,
@@ -229,39 +215,27 @@ export class AWSS3Connector extends BaseAWSConnector {
     return this.s3.getObject({ Bucket: bucket, Key: key }).promise()
   }
 
-  public async putObject(
-    key: string,
-    buffer: Buffer,
-    bucket: string = this.bucket
-  ) {
-    return this.s3.putObject({
-      Bucket: bucket,
-      Key: key,
-      Body: buffer,
-    }).promise()
+  public async putObject(key: string, buffer: Buffer, bucket: string = this.bucket) {
+    return this.s3
+      .putObject({
+        Bucket: bucket,
+        Key: key,
+        Body: buffer,
+      })
+      .promise()
   }
 
-  public async getSignedURL(
-    operation: string,
-    key: string,
-    expires = 60
-  ): Promise<string> {
+  public async getSignedURL(operation: string, key: string, expires = 60): Promise<string> {
     const req = { Bucket: this.bucket, Key: key, Expires: expires }
     const s3 = await this.getRegionalClient()
     return s3!.getSignedUrlPromise(operation, req)
   }
 
-  public async getSignedObjectGetURL(
-    key: string,
-    expires: number
-  ): Promise<string> {
+  public async getSignedObjectGetURL(key: string, expires: number): Promise<string> {
     return this.getSignedURL('getObject', key, expires)
   }
 
-  public async getSignedObjectPutURL(
-    key: string,
-    expires: number
-  ): Promise<string> {
+  public async getSignedObjectPutURL(key: string, expires: number): Promise<string> {
     return this.getSignedURL('putObject', key, expires)
   }
 
