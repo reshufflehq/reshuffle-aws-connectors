@@ -12,7 +12,7 @@ This [Reshuffle](https://dev.reshuffle.com) connector can be used to transcode v
 Elemental Media Convert service. Complete information about the service API
 can be found [Elemental Media Convert](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MediaConvert.html).
 
-The following examples provides two API endpoints, one for initiate a
+The following example provides two API endpoints, one to initiate a
 transcoding job and another for tracking its progress:
 
 ```js
