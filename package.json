@@ -5,13 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rimraf dist && tsc -b tsconfig.json",
-    "build:watch": "rimraf dist && tsc -b tsconfig.json -w",
+    "build": "rimraf dist && tsc",
+    "build:watch": "rimraf dist && tsc -w",
     "clean": "rimraf dist node_modules package-lock.json",
     "lint": "eslint . --ext .ts,.js --fix",
     "prepublishOnly": "rimraf dist && tsc",
-    "prepare": "rimraf dist && tsc",
-    "test": "echo \"No tests yet\" && exit 1"
+    "prepare": "rimraf dist && tsc"
   },
   "repository": {
     "type": "git",
