@@ -13,7 +13,7 @@ transcoder service. Full information about the Amazon Elastic Transcoder
 service API can be found
 [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ElasticTranscoder.html).
 
-The following examples provides two API endpoints, one for initiate a
+The following example provides two API endpoints, one to initiate a
 transcoding job and another for tracking its progress:
 
 ```js
