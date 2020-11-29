@@ -1,8 +1,8 @@
 # AWS Connectors
 
-This package contains [Resshufle](https://github.com/reshufflehq/reshuffle)
+This package contains [Reshuffle](https://github.com/reshufflehq/reshuffle)
 connectors to (some of the) services available from AWS. These connectors are
-the implemented using the
+implemented using the
 [AWS SDK for JavaScript](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/).
 
 ## Connectors
