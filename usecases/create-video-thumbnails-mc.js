@@ -41,7 +41,6 @@ const s3 = new AWSS3Connector(app, { ...ACCOUNT, bucket: BUCKET })
 // the file to the target bucket
 
 s3.on({ type: 'ObjectAdded' }, async (event) => {
-
   // Get the file name and create the thumbnail name
 
   const filename = event.key
@@ -69,7 +68,7 @@ s3.on({ type: 'ObjectAdded' }, async (event) => {
     mediaInfo &&
     mediaInfo.media &&
     mediaInfo.media.track &&
-    mediaInfo.media.track.find(e => e['@type'] === 'Video')
+    mediaInfo.media.track.find((e) => e['@type'] === 'Video')
 
   if (!videoInfo) {
     console.log('Not a video file:', filename)
@@ -83,12 +82,10 @@ s3.on({ type: 'ObjectAdded' }, async (event) => {
   console.log(`Video picture size: ${videoInfo.Width} x ${videoInfo.Height}`)
 
   if (180 < videoInfo.Height) {
-
     // Calculate thumbnail size
 
     const height = 180
-    const width = Math.ceil(videoInfo.Width * height /
-      videoInfo.Height) & 65534 // make even
+    const width = Math.ceil((videoInfo.Width * height) / videoInfo.Height) & 65534 // make even
     console.log(`Thumbnail size: ${width} x ${height}`)
 
     // Start transcoding to generate the video thumbnail
@@ -119,14 +116,8 @@ s3.on({ type: 'ObjectAdded' }, async (event) => {
 
   // Small enough files are simply copied. Copy is faily fast so
   // we can wait for it to complete and then the thumbnail is ready
-
   else {
-    await s3.copyObject(
-      S3_SOURCE_BUCKET,
-      filename,
-      S3_TARGET_BUCKET,
-      thumbnail,
-    )
+    await s3.copyObject(S3_SOURCE_BUCKET, filename, S3_TARGET_BUCKET, thumbnail)
     console.log('Original copied to thumbnail:', thumbnail)
   }
 })
@@ -135,8 +126,7 @@ s3.on({ type: 'ObjectAdded' }, async (event) => {
 // thumbnail is ready
 
 mc.on({ type: 'JobStatusChanged' }, async (event) => {
-  console.log(`Job progress ${event.jobId}: ${
-    event.old.Status} -> ${event.current.Status}`)
+  console.log(`Job progress ${event.jobId}: ${event.old.Status} -> ${event.current.Status}`)
 })
 
 // Expose an API endpoint, returning a list of all thumbnail videos

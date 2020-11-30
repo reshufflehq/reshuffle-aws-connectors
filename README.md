@@ -15,6 +15,8 @@ all implemented using the
 
 * [AWS S3 Connector](doc/AWSS3Connector.md)
 
+* [AWS SNS Connector](doc/AWSSNSConnector.md)
+
 ## Examples
 
 * [Elastic Transcoder](examples/elastic-transcoder.js)
@@ -30,6 +32,8 @@ all implemented using the
 * [S3: Watch files](examples/s3-watch-files.js)
 
 * [S3+Lambda: Video info](examples/s3-lambda-video-info.js)
+
+* [SNS: send messages](examples/sns-messages.js)
 
 ## Use Cases
 
