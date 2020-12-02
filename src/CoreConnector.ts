@@ -15,7 +15,7 @@ export type CoreEventHandler = (event: Record<string, any>) => void
 export type CoreEventMapper = (ec: EventConfiguration) => any
 
 export class CoreEventManager {
-  private eventConfigurationSet: Record<string, EventConfiguration> = {}
+  eventConfigurationSet: Record<string, EventConfiguration> = {}
 
   constructor(private connector: BaseConnector) {}
 
