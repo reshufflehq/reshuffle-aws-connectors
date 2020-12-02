@@ -48,7 +48,8 @@ export class AWSSQSConnector extends BaseAWSConnector {
       this.app
         .getLogger()
         .info(
-          `Reshuffle - AWSSQSConnector: ${res.Messages.length} message(s) received from queue ${QueueUrl}`,
+          'Reshuffle - AWSSQSConnector: ${res.Messages.length} message(s) received from queue',
+          QueueUrl,
         )
 
       if (deleteAfterReceive && res.Messages) {
@@ -68,7 +69,7 @@ export class AWSSQSConnector extends BaseAWSConnector {
     } else {
       this.app
         .getLogger()
-        .debug(`Reshuffle - AWSSQSConnector:  no new message from queue ${QueueUrl}`)
+        .debug('Reshuffle - AWSSQSConnector:  no new message from queue', QueueUrl)
     }
 
     return res.Messages || []
