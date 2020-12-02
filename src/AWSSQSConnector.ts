@@ -48,7 +48,7 @@ export class AWSSQSConnector extends BaseAWSConnector {
       this.app
         .getLogger()
         .info(
-          'Reshuffle - AWSSQSConnector: ${res.Messages.length} message(s) received from queue',
+          `Reshuffle - AWSSQSConnector: ${res.Messages.length} message(s) received from queue`,
           QueueUrl,
         )
 
