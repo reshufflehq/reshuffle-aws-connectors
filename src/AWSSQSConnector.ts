@@ -42,34 +42,32 @@ export class AWSSQSConnector extends BaseAWSConnector {
     }
   }
 
-  private async getQueueMessages(QueueUrl: string, deleteAfterReceive = true) {
-    const res = await this.client.receiveMessage({ QueueUrl }).promise()
+  private async getQueueMessages(queueUrl: string, deleteAfterReceive = true) {
+    const res = await this.client.receiveMessage({ QueueUrl: queueUrl }).promise()
     if (res.Messages && res.Messages.length) {
       this.app
         .getLogger()
         .info(
-          `Reshuffle - AWSSQSConnector: ${res.Messages.length} message(s) received from queue`,
-          QueueUrl,
+          `Reshuffle - AWSSQSConnector: ${res.Messages.length} message(s) received from queue ${queueUrl}`,
         )
 
-      if (deleteAfterReceive && res.Messages) {
+      if (deleteAfterReceive) {
         const Entries = res.Messages.map<DeleteMessageBatchRequestEntry>((msg) => ({
           Id: msg.MessageId || '',
           ReceiptHandle: msg.ReceiptHandle || '',
         }))
 
-        await this.client.deleteMessageBatch({ QueueUrl, Entries }).promise()
+        await this.client.deleteMessageBatch({ QueueUrl: queueUrl, Entries }).promise()
         this.app
           .getLogger()
           .info(
-            'Reshuffle - AWSSQSConnector: received messages have been deleted from queue',
-            QueueUrl,
+            `Reshuffle - AWSSQSConnector: received messages have been deleted from queue ${queueUrl}`,
           )
       }
     } else {
       this.app
         .getLogger()
-        .debug('Reshuffle - AWSSQSConnector:  no new message from queue', QueueUrl)
+        .debug(`Reshuffle - AWSSQSConnector:  no new message from queue ${queueUrl}`)
     }
 
     return res.Messages || []
