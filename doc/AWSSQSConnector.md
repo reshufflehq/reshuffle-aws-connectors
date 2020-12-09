@@ -11,8 +11,7 @@
 This [Reshuffle](https://dev.reshuffle.com) connector can be used to interact with AWS SQS queues.
 [AWS SQS documentation](https://docs.aws.amazon.com/sqs/index.html).
 
-// The following example listen to new messages in the queue if a message is not already present in an AWS queue, if not send it.
-// Triggered when Reshuffle receives an HTTP request on /send
+The following code listens to new messages in the queue. When a message arrives it logs the details of the message event.
 ```js
 const { HttpConnector, Reshuffle } = require('reshuffle')
 const { AWSSQSConnector } = require('reshuffle-aws-connectors')
@@ -45,7 +44,7 @@ _Connector events_:
 
 _Connector actions_:
 
-[Send message](#sendMessage) Send messages
+[Send message](#sendMessage) Send a message
 _SDK_:
 
 [sdk](#sdk) Get direct SQS SDK access
@@ -140,7 +139,7 @@ _Usage:_
 
 ```js
 const params = {
-  MessageBody: 'Message from Reshuffleto AQS SQS!',
+  MessageBody: 'Message from Reshuffle to AWS SQS!',
   QueueUrl: 'https://sqs.us-east-1.amazonaws.com/<project_id>/<queue_name>',
 }
 const response = await sqsConnector.sendMessage(params)
