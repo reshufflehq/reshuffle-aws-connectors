@@ -33,7 +33,9 @@ all implemented using the
 
 * [S3+Lambda: Video info](examples/s3-lambda-video-info.js)
 
-* [SNS: send messages](examples/sns-messages.js)
+* [SNS: send messages](https://github.com/reshufflehq/reshuffle/blob/master/examples/aws/sns-messages.js)
+
+* [SQS: send messages](https://github.com/reshufflehq/reshuffle/blob/master/examples/aws/sqs-messages.js)
 
 ## Use Cases
 
