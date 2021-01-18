@@ -8,7 +8,7 @@
 
 ### Reshuffle AWS SQS Connector
 
-This [Reshuffle](https://reshuffle.com) connector can be used to interact with AWS SQS queues.
+This [Reshuffle](https://github.com/reshufflehq/reshuffle) connector can be used to interact with AWS SQS queues.
 [AWS SQS documentation](https://docs.aws.amazon.com/sqs/index.html).
 
 The following code listens to new messages in the queue. When a message arrives it logs the details of the message event.
