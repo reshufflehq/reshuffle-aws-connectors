@@ -2,7 +2,7 @@
 
 [Code](https://github.com/reshufflehq/reshuffle-aws-connectors) |
 [npm](https://www.npmjs.com/package/reshuffle-aws-connectors) |
-[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/blob/master/examples/lambda-create-invoke.js)
+[Code sample](https://github.com/reshufflehq/reshuffle/blob/master/examples/aws/lambda-create-invoke.js)
 
 `npm install reshuffle-aws-connectors`
 
