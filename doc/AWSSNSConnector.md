@@ -2,13 +2,13 @@
 
 [Code](https://github.com/reshufflehq/reshuffle-aws-connectors) |
 [npm](https://www.npmjs.com/package/reshuffle-aws-connectors) |
-[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/examples)
+[Code sample](https://github.com/reshufflehq/reshuffle/blob/master/examples/aws/sns-messages.js)
 
 `npm install reshuffle-aws-connectors`
 
 ### Reshuffle AWS SNS Connector
 
-This [Reshuffle](https://dev.reshuffle.com) connector can be used to send messages using
+This [Reshuffle](https://reshuffle.com) connector can be used to send messages using
 [AWS SNS](https://docs.aws.amazon.com/sns/index.html).
 
 The following example sends a message via AWS SNS when Reshuffle receives an HTTP request on `/send`
