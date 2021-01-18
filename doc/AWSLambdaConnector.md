@@ -2,13 +2,13 @@
 
 [Code](https://github.com/reshufflehq/reshuffle-aws-connectors) |
 [npm](https://www.npmjs.com/package/reshuffle-aws-connectors) |
-[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/examples)
+[Code sample](https://github.com/reshufflehq/reshuffle/blob/master/examples/aws/lambda-create-invoke.js)
 
 `npm install reshuffle-aws-connectors`
 
 ### Reshuffle AWS Lambda Connector
 
-This [Reshuffle](https://dev.reshuffle.com) connector can be used to access AWS Lambda. It is implemented
+This [Reshuffle](https://github.com/reshufflehq/reshuffle) connector can be used to access AWS Lambda. It is implemented
 using Amazon's
 [Lambda SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html).
 

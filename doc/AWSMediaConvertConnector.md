@@ -2,13 +2,13 @@
 
 [Code](https://github.com/reshufflehq/reshuffle-aws-connectors) |
 [npm](https://www.npmjs.com/package/reshuffle-aws-connectors) |
-[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/examples)
+[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/blob/master/examples/media-convert.js)
 
 `npm install reshuffle-aws-connectors`
 
 ### Reshuffle AWS Media Convert Connector
 
-This [Reshuffle](https://dev.reshuffle.com) connector can be used to transcode video and audio using Amazon's
+This [Reshuffle](https://github.com/reshufflehq/reshuffle) connector can be used to transcode video and audio using Amazon's
 Elemental Media Convert service. Complete information about the service API
 can be found [Elemental Media Convert](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MediaConvert.html).
 
