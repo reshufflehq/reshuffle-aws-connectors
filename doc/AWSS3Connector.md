@@ -2,13 +2,13 @@
 
 [Code](https://github.com/reshufflehq/reshuffle-aws-connectors) |
 [npm](https://www.npmjs.com/package/reshuffle-aws-connectors) |
-[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/examples)
+[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/blob/master/examples/s3-list-files.js)
 
 `npm install reshuffle-aws-connectors`
 
 ### Reshuffle AWS S3 Connector
 
-This [Reshuffle](https://dev.reshuffle.com) connector can be used to manage AWS S3 buckets and objects. Full
+This [Reshuffle](https://reshuffle.com) connector can be used to manage AWS S3 buckets and objects. Full
 details on the S3 API can be found
 [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html).
 
