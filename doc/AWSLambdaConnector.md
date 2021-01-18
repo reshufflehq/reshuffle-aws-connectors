@@ -63,7 +63,7 @@ _Connector actions_:
 
 [createFromBuffer](#createFromBuffer) Create a new Lambda function from buffer
 
-[createFromCode](#createFromCode) Create a new Lambda function from code
+[createFromCode](#createFromCode) Create a new Lambda function from code string
 
 [createFromFile](#createFromFile) Create a new Lambda function from file
 
@@ -78,6 +78,16 @@ _Connector actions_:
 [invoke](#invoke) Execute a Lambda function
 
 [listFunctions](#listFunctions) List deployed functions
+
+[updateCode](#updateCode) Update Lambda function code
+
+[updateCodeFromBuffer](#updateCodeFromBuffer) Update Lambda function code from buffer
+
+[updateCodeFromCode](#updateCodeFromCode) Update Lambda function code from code string
+
+[updateCodeFromFile](#updateCodeFromFile) Update Lambda function code from file
+
+[updateCodeInFolder](#updateCodeInFolder) Update Lambda function code by collecting files in a folder
 
 _SDK_:
 
@@ -470,6 +480,154 @@ const list = await awsLambdaConnector.listFunctions()
 ```
 
 Get information about deployed Lambda functions.
+
+##### <a name="updateCode"></a>Update Code action
+
+_Definition:_
+
+```ts
+(
+  functionName: string,
+  payload: Payload,
+  options: object = {},
+) => object
+```
+
+_Usage:_
+
+```js
+const functionInfo = await awsLambdaConnector.updateCode(
+  'toLowerUpperString',
+  { code: `
+    exports.handler = async (event) => {
+      const str = event.str || 'Hello, beautiful world!!'
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          lower: str.toLowerCase(),
+          upper: str.toUpperCase(),
+        }),
+      }
+    }
+  ` },
+)
+```
+
+Update the code of an existing Lambda function with the given `functionName`.
+The code can be specified in one of three ways, as defined in [create](#create)
+above.
+
+##### <a name="updateCodeFromBuffer"></a>Update Code From Buffer action
+
+_Definition:_
+
+```ts
+(
+  functionName: string,
+  buffer: Buffer,
+) => object
+```
+
+_Usage:_
+
+```js
+const zip = new require('JSZip')()
+// ... add files ...
+const buffer = await zip.generateAsync({ type: 'nodebuffer' })
+const functionInfo = await awsLambdaConnector.updateCodeFromBuffer(
+  'toLowerUpperString',
+  buffer,
+)
+```
+
+Update an existing Lambda function with the given `functionName` to execute
+the code in the specified buffer. See [create](#create) above for more
+details.
+
+##### <a name="updateCodeFromCode"></a>Update Code From Code action
+
+_Definition:_
+
+```ts
+(
+  functionName: string,
+  code: string,
+) => object
+```
+
+_Usage:_
+
+```js
+const functionInfo = await awsLambdaConnector.updateCodeFromCode(
+  'toLowerUpperString',
+  `
+  exports.handler = async (event) => {
+    const str = event.str || 'Hello, beautiful world!!'
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        lower: str.toLowerCase(),
+        upper: str.toUpperCase(),
+      }),
+    }
+  }
+  `,
+)
+```
+
+Update an existing Lambda function with the given `functionName` to execute
+the code in `code`. See [create](#create) above for more details.
+
+##### <a name="updateCodeFromFile"></a>Update Code From File action
+
+_Definition:_
+
+```ts
+(
+  functionName: string,
+  filename: string,
+) => object
+```
+
+_Usage:_
+
+```js
+const functionInfo = await awsLambdaConnector.createFromFile(
+  'toLowerUpperString',
+  './toLowerUpperString.js',
+)
+```
+
+Update an existing Lambda function with the given `functionName` to execute
+the code inside the file `filename`. See [create](#create) above for more
+details.
+
+##### <a name="updateCodeInFolder"></a>Update Code In Folder action
+
+_Definition:_
+
+```ts
+(
+  functionName: string,
+  fileHandler: async (folder => Folder) => Promise<void>,
+) => object
+```
+
+_Usage:_
+
+```js
+const functionInfo = await awsLambdaConnector.updateCodeInFolder(
+  'toLowerUpperString',
+  async folder => {
+    await folder.copy('index.js', `${__dirname}/toLowerUpperString.js`)
+  }
+)
+```
+
+Update an existing Lambda function with the given `functionName` to execute
+the code set up in a folder. See [createInFolder](#createInFolder) above for
+more details.
+
 
 #### SDK
 
