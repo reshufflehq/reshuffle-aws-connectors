@@ -26,7 +26,7 @@ export class CoreEventManager {
     eventId: string | Record<string, any>,
   ): EventConfiguration {
     const id =
-      typeof eventId == 'string'
+      typeof eventId === 'string'
         ? eventId
         : `${this.connector.constructor.name}:${objhash(eventId)}:${this.connector.id}`
     const ec = new EventConfiguration(id, this.connector, eventOptions)
@@ -126,7 +126,7 @@ export class CoreConnector extends BaseConnector {
 
   public onStart(): void {
     const onInterval = (this as any).onInterval
-    if (typeof onInterval == 'function') {
+    if (typeof onInterval === 'function') {
       this.interval = setInterval(onInterval.bind(this), INTERVAL_DELAY_MS)
     }
   }

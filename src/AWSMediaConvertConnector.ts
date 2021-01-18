@@ -53,7 +53,7 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
       })
     }
     if (!this.mc) {
-      throw new Error('No MeriaConvert')
+      throw new Error('No MediaConvert client')
     }
     return this.mc
   }
