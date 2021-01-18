@@ -345,7 +345,7 @@ const functionInfo = await awsLambdaConnector.createInFolder(
 )
 ```
 
-Create a new Lambda function with the given `functionName` to by setting up
+Create a new Lambda function with the given `functionName` by setting up
 files in a folder. The `folderHandler` object receives a single `folder`
 object that provides the following methods:
 
