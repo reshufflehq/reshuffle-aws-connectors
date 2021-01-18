@@ -2,13 +2,13 @@
 
 [Code](https://github.com/reshufflehq/reshuffle-aws-connectors) |
 [npm](https://www.npmjs.com/package/reshuffle-aws-connectors) |
-[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/examples)
+[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/blob/master/examples/elastic-transcoder.js)
 
 `npm install reshuffle-aws-connectors`
 
 ### Reshuffle AWS Elastic Transcoder Connector
 
-This [Reshuffle](https://dev.reshuffle.com) connector can be used to transcode video and audio using Amazon's
+This [Reshuffle](https://reshuffle.com) connector can be used to transcode video and audio using Amazon's
 transcoder service. Full information about the Amazon Elastic Transcoder
 service API can be found
 [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ElasticTranscoder.html).
