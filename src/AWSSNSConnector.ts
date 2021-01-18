@@ -9,11 +9,11 @@ export class AWSSNSConnector extends BaseAWSConnector {
     this.client = this.account.getClient('SNS')
   }
 
-  public async publish(params: AWS.SNS.Types.PublishInput) {
+  public async publish(params: AWS.SNS.Types.PublishInput): Promise<any> {
     return this.client.publish(params).promise()
   }
 
-  public sdk() {
+  public sdk(): AWS.SNS {
     return this.client
   }
 }

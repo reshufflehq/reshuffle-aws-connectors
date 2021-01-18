@@ -10,7 +10,13 @@ const pipeline = util.promisify(stream.pipeline)
 
 AWS.config.signatureVersion = 'v4'
 
-export async function handler(event: any) {
+interface LambdaResponse {
+  statusCode: number
+  body: string | Buffer
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function handler(event: any): Promise<LambdaResponse> {
   console.log('Running command:', event.command)
   console.log('URLs:', event.urls)
 
@@ -51,7 +57,10 @@ export async function handler(event: any) {
 
   // Cache the executable from S3 or URL into a local folder
   const exeFolder = new Folder('executable', true)
-  const executable: string = process.env.EXECUTABLE!
+  if (!process.env.EXECUTABLE) {
+    throw new Error('Missing EXECUTABLE environment variable')
+  }
+  const executable: string = process.env.EXECUTABLE
   console.log('Executable:', executable)
   const s3exe = executable.startsWith('s3')
   const exe = s3exe ? splitS3Url(executable)[1] : splitUrl(executable)[1]

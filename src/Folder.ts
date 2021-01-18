@@ -8,6 +8,12 @@ import childProcess from 'child_process'
 
 const exec = util.promisify(childProcess.exec)
 
+export interface Executed {
+  error?: Error
+  stdout: string | Buffer
+  stderr: string | Buffer
+}
+
 export class Folder {
   private base: string
   private didInitializeDirectory = false
@@ -16,17 +22,17 @@ export class Folder {
     this.base = ospath.join(os.tmpdir(), name)
   }
 
-  public async copy(targetName: string, sourcePath: string) {
+  public async copy(targetName: string, sourcePath: string): Promise<void> {
     await this.init()
-    return fs.copyFile(sourcePath, `${this.base}/${targetName}`)
+    await fs.copyFile(sourcePath, `${this.base}/${targetName}`)
   }
 
-  public async destroy() {
+  public async destroy(): Promise<void> {
     await rimraf.sync(this.base)
     this.didInitializeDirectory = false
   }
 
-  public async exec(cmd: string) {
+  public async exec(cmd: string): Promise<Executed> {
     await this.init()
     return exec(`cd ${this.base} && ${cmd}`)
   }
@@ -44,7 +50,7 @@ export class Folder {
     }
   }
 
-  public async init() {
+  public async init(): Promise<void> {
     if (!this.didInitializeDirectory) {
       const options = this.recursive ? { recursive: true } : undefined
       await fs.mkdir(this.base, options)
@@ -56,9 +62,9 @@ export class Folder {
     return ospath.join(this.base, name)
   }
 
-  public async write(targetName: string, data: string) {
+  public async write(targetName: string, data: string): Promise<void> {
     await this.init()
-    return fs.writeFile(`${this.base}/${targetName}`, data, 'utf-8')
+    await fs.writeFile(`${this.base}/${targetName}`, data, 'utf-8')
   }
 
   public async zip(options: any = {}): Promise<Buffer> {

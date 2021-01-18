@@ -87,9 +87,12 @@ class AWSAccount {
   }
 
   public getCredentials() {
+    if (!this.options) {
+      throw new Error('Credentials must be specified in connector options')
+    }
     return {
-      accessKeyId: this.options!.accessKeyId,
-      secretAccessKey: this.options!.secretAccessKey,
+      accessKeyId: this.options.accessKeyId,
+      secretAccessKey: this.options.secretAccessKey,
     }
   }
 }
