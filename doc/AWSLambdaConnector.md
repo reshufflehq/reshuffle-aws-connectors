@@ -8,7 +8,7 @@
 
 ### Reshuffle AWS Lambda Connector
 
-This [Reshuffle](https://reshuffle.com) connector can be used to access AWS Lambda. It is implemented
+This [Reshuffle](https://github.com/reshufflehq/reshuffle) connector can be used to access AWS Lambda. It is implemented
 using Amazon's
 [Lambda SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html).
 
