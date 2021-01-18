@@ -265,24 +265,9 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     folderHandler: (folder: Folder) => Promise<void>,
     options: Options = {},
   ): Promise<any> {
-    const folder = new Folder(
-      `reshuffle-awslambdaconnector-${crypto.randomBytes(8).toString('hex')}`,
-    )
-
-    try {
-      console.debug(`${functionName}: Building code folder`)
-      await folderHandler(folder)
-
-      console.debug(`${functionName}: Packaging folder`)
-      const buffer = await folder.zip()
-      console.debug(`${functionName}: Package size ${buffer.length} bytes`)
-
-      console.debug(`${functionName}: Deploying to Lambda`)
-      const func = await this.createFromBuffer(functionName, buffer, options)
-      return func // must explicitly await for finally
-    } finally {
-      await folder.destroy()
-    }
+    return this.inFolder(functionName, folderHandler, (buffer: Buffer) => {
+      return this.createFromBuffer(functionName, buffer, options)
+    })
   }
 
   public async delete(functionName: string): Promise<void> {
@@ -454,6 +439,63 @@ export class AWSLambdaConnector extends BaseAWSConnector {
   public async listFunctions(): Promise<any> {
     const res = await this.lambda.listFunctions({}).promise()
     return res.Functions
+  }
+
+  public async updateCode(functionName: string, payload: Payload): Promise<any> {
+    this.validateFunctionName(functionName)
+    const buffer = await this.makeBuffer(payload)
+
+    return this.lambda
+      .updateFunctionCode({
+        ZipFile: buffer,
+        FunctionName: functionName,
+      })
+      .promise()
+  }
+
+  public async updateCodeFromBuffer(functionName: string, buffer: Buffer): Promise<any> {
+    return this.updateCode(functionName, { buffer })
+  }
+
+  public async updateCodeFromCode(functionName: string, code: string): Promise<any> {
+    return this.updateCode(functionName, { code })
+  }
+
+  public async updateCodeFromFile(functionName: string, filename: string): Promise<any> {
+    return this.updateCode(functionName, { filename })
+  }
+
+  public async updateCodeInFolder(
+    functionName: string,
+    folderHandler: (folder: Folder) => Promise<void>,
+  ): Promise<any> {
+    return this.inFolder(functionName, folderHandler, (buffer: Buffer) => {
+      return this.updateCodeFromBuffer(functionName, buffer)
+    })
+  }
+
+  private async inFolder(
+    functionName: string,
+    folderHandler: (folder: Folder) => Promise<void>,
+    action: (buffer: Buffer) => Promise<any>,
+  ) {
+    const folder = new Folder(
+      `reshuffle-awslambdaconnector-${crypto.randomBytes(8).toString('hex')}`,
+    )
+    try {
+      console.debug(`${functionName}: Building code folder`)
+      await folderHandler(folder)
+
+      console.debug(`${functionName}: Packaging folder`)
+      const buffer = await folder.zip()
+      console.debug(`${functionName}: Package size ${buffer.length} bytes`)
+
+      console.debug(`${functionName}: Deploying to Lambda`)
+      const res = await action(buffer) // must explicitly await for finally
+      return res
+    } finally {
+      await folder.destroy()
+    }
   }
 
   // SDK ////////////////////////////////////////////////////////////
