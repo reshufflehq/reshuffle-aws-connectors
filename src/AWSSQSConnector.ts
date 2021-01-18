@@ -48,7 +48,8 @@ export class AWSSQSConnector extends BaseAWSConnector {
       this.app
         .getLogger()
         .info(
-          `Reshuffle - AWSSQSConnector: ${res.Messages.length} message(s) received from queue ${queueUrl}`,
+          `ReshuffleAWSSQSConnector: ${res.Messages.length} ` +
+            `message(s) received from queue ${queueUrl}`,
         )
 
       if (deleteAfterReceive) {
@@ -61,13 +62,12 @@ export class AWSSQSConnector extends BaseAWSConnector {
         this.app
           .getLogger()
           .info(
-            `Reshuffle - AWSSQSConnector: received messages have been deleted from queue ${queueUrl}`,
+            'ReshuffleAWSSQSConnector: received messages have been ' +
+              `deleted from queue ${queueUrl}`,
           )
       }
     } else {
-      this.app
-        .getLogger()
-        .debug(`Reshuffle - AWSSQSConnector:  no new message from queue ${queueUrl}`)
+      this.app.getLogger().debug(`ReshuffleAWSSQSConnector:  no new message from queue ${queueUrl}`)
     }
 
     return res.Messages || []
@@ -79,7 +79,8 @@ export class AWSSQSConnector extends BaseAWSConnector {
     return this.client.sendMessage(params).promise()
   }
 
-  // Full list of actions in SDK: https://github.com/aws/aws-sdk-js/blob/master/clients/sqs.d.ts
+  // Full list of actions in SDK:
+  // https://github.com/aws/aws-sdk-js/blob/master/clients/sqs.d.ts
   public sdk(): AWS.SQS {
     return this.client
   }

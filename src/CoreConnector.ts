@@ -8,6 +8,7 @@ import {
 } from 'reshuffle-base-connector'
 
 export { Reshuffle }
+export { EventConfiguration }
 export type Options = Record<string, any>
 
 export type CoreEventFilter = (ec: EventConfiguration) => boolean
@@ -20,7 +21,7 @@ export class CoreEventManager {
   constructor(private connector: BaseConnector) {}
 
   public addEvent(
-    eventOptions: any,
+    eventOptions: Options,
     handler: CoreEventHandler,
     eventId: string | Record<string, any>,
   ): EventConfiguration {
@@ -34,7 +35,7 @@ export class CoreEventManager {
     return ec
   }
 
-  public removeEvent(ec: EventConfiguration) {
+  public removeEvent(ec: EventConfiguration): void {
     delete this.eventConfigurationSet[ec.id]
   }
 
@@ -45,12 +46,12 @@ export class CoreEventManager {
       .filter((e, i, a) => i === a.indexOf(e)) // unique
   }
 
-  public async fire(filter: CoreEventFilter, events: any | any[]) {
+  public async fire(filter: CoreEventFilter, events: any | any[]): Promise<void> {
     const evs = Array.isArray(events) ? events : [events]
     const ecs = Object.values(this.eventConfigurationSet).filter(filter)
     for (const ec of ecs) {
       for (const ev of evs) {
-        await this.connector.app!.handleEvent(ec.id, ev)
+        await this.connector.app.handleEvent(ec.id, ev)
       }
     }
   }
@@ -59,7 +60,7 @@ export class CoreEventManager {
 export class CorePersistentStore implements PersistentStore {
   private prefix: string
 
-  constructor(private connector: BaseConnector, descriptor: any) {
+  constructor(private connector: BaseConnector, descriptor?: Record<string, any>) {
     this.prefix = `${this.connector.constructor.name}:`
     if (descriptor) {
       this.prefix += `${objhash(descriptor)}:`
@@ -67,7 +68,7 @@ export class CorePersistentStore implements PersistentStore {
   }
 
   private getStore() {
-    return this.connector.app!.getPersistentStore()
+    return this.connector.app.getPersistentStore()
   }
 
   public del(key: string): Promise<void> {
@@ -85,6 +86,7 @@ export class CorePersistentStore implements PersistentStore {
     return array.filter((key) => key.startsWith(this.prefix))
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public set(key: string, value: any): Promise<any> {
     this.validateKey(key)
     this.validateValue(value)
@@ -102,6 +104,7 @@ export class CorePersistentStore implements PersistentStore {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public validateValue(value: any): void {
     if (value === undefined) {
       throw new Error(`PersistentStore: Invalid value: ${value}`)
@@ -121,14 +124,14 @@ export class CoreConnector extends BaseConnector {
     this.store = new CorePersistentStore(this, options)
   }
 
-  public onStart() {
+  public onStart(): void {
     const onInterval = (this as any).onInterval
     if (typeof onInterval == 'function') {
       this.interval = setInterval(onInterval.bind(this), INTERVAL_DELAY_MS)
     }
   }
 
-  public onStop() {
+  public onStop(): void {
     if (this.interval) {
       clearInterval(this.interval)
       this.interval = undefined

@@ -1,5 +1,5 @@
 import { AWS, BaseAWSConnector } from './BaseAWSConnector'
-import { CoreEventHandler, Options, Reshuffle } from './CoreConnector'
+import { CoreEventHandler, EventConfiguration, Options, Reshuffle } from './CoreConnector'
 
 interface EventOptions {
   type: string
@@ -25,17 +25,20 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
 
   private async getRoleArn(): Promise<string> {
     if (!this.roleArn) {
-      const role = await this.identity.getOrCreateServiceRole(
-        this.options.roleName || 'reshuffle_AWSMediaConvertConnector',
-        'mediaconvert.amazonaws.com',
-        [
-          'arn:aws:iam::aws:policy/AmazonS3FullAccess',
-          'arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess',
-        ],
-      )
+      const rn = this.options.roleName || 'reshuffle_AWSMediaConvertConnector'
+      const role = await this.identity.getOrCreateServiceRole(rn, 'mediaconvert.amazonaws.com', [
+        'arn:aws:iam::aws:policy/AmazonS3FullAccess',
+        'arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess',
+      ])
+      if (typeof role.Arn !== 'string') {
+        throw new Error(`Error creating IAM role: ${rn}`)
+      }
       this.roleArn = role.Arn
     }
-    return this.roleArn!
+    if (!this.roleArn) {
+      throw new Error('No role')
+    }
+    return this.roleArn
   }
 
   private async getClient(): Promise<AWS.MediaConvert> {
@@ -49,12 +52,19 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
         endpoint: ep.Endpoints[0].Url,
       })
     }
-    return this.mc!
+    if (!this.mc) {
+      throw new Error('No MeriaConvert')
+    }
+    return this.mc
   }
 
   // Events /////////////////////////////////////////////////////////
 
-  public on(options: EventOptions, handler: CoreEventHandler, eventId?: string) {
+  public on(
+    options: EventOptions,
+    handler: CoreEventHandler,
+    eventId?: string,
+  ): EventConfiguration {
     if (options.type !== 'JobStatusChanged') {
       throw new Error(`Invalid event type: ${options.type}`)
     }
@@ -62,7 +72,7 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
     return this.eventManager.addEvent(options, handler, eid)
   }
 
-  protected async onInterval() {
+  protected async onInterval(): Promise<void> {
     const [oldJobs, newJobs] = (await this.store.update('jobs', () =>
       this.listJobsById(),
     )) as JobSet[]
@@ -92,11 +102,12 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
     await client.cancelJob(job).promise()
   }
 
-  public async cancelJobById(id: string) {
+  public async cancelJobById(id: string): Promise<void> {
     return this.cancelJob({ Id: id })
   }
 
-  public async createJob(params: any) {
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  public async createJob(params: any): Promise<Job> {
     const client = await this.getClient()
     const res: any = await client.createJob(params).promise()
     const job = res.Job
@@ -115,7 +126,7 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
     input: Record<string, any>,
     outputGroup: Record<string, any>,
     settings: Record<string, any> = {},
-  ) {
+  ): Promise<Job> {
     return this.createJob({
       Role: await this.getRoleArn(),
       Settings: {
@@ -131,7 +142,7 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
     dst: string,
     output: Record<string, any>,
     settings?: Record<string, any>,
-  ) {
+  ): Promise<Job> {
     return this.createSimpleJob(
       { FileInput: src },
       {
@@ -145,23 +156,23 @@ export class AWSMediaConvertConnector extends BaseAWSConnector {
     )
   }
 
-  public async getJobStatus(job: Job) {
+  public async getJobStatus(job: Job): Promise<Job> {
     const client = await this.getClient()
     const res: any = await client.getJob(job).promise()
     return res.Job
   }
 
-  public async getJobStatusById(id: string) {
+  public async getJobStatusById(id: string): Promise<Job> {
     return this.getJobStatus({ Id: id })
   }
 
-  public async listJobs(max = 20) {
+  public async listJobs(max = 20): Promise<Job[]> {
     const client = await this.getClient()
     const res: any = await client.listJobs({ MaxResults: max }).promise()
     return res.Jobs
   }
 
-  public async listJobsById(max?: number) {
+  public async listJobsById(max?: number): Promise<Record<string, Job>> {
     const list = await this.listJobs(max)
     const obj: Record<string, Job> = {}
     for (const job of list) {

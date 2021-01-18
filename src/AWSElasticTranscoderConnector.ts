@@ -1,5 +1,5 @@
 import { AWS, BaseAWSConnector } from './BaseAWSConnector'
-import { CoreEventHandler, Options, Reshuffle } from './CoreConnector'
+import { CoreEventHandler, EventConfiguration, Options, Reshuffle } from './CoreConnector'
 
 interface EventOptions {
   pipelineId: string
@@ -41,7 +41,11 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
 
   // Events /////////////////////////////////////////////////////////
 
-  public on(options: EventOptions, handler: CoreEventHandler, eventId?: string) {
+  public on(
+    options: EventOptions,
+    handler: CoreEventHandler,
+    eventId?: string,
+  ): EventConfiguration {
     if (!/^\d{13}-[a-z]{6}$/.test(options.pipelineId)) {
       throw new Error(`Invalid pipeline ID: ${options.pipelineId}`)
     }
@@ -49,7 +53,7 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
     return this.eventManager.addEvent(options, handler, eid)
   }
 
-  protected async onInterval() {
+  protected async onInterval(): Promise<void> {
     const ids = this.eventManager.mapEvents((ec) => ec.options.pipelineId) as string[]
 
     const [oldPipelines, newPipelines] = (await this.store.update('pipelines', async () =>
@@ -92,6 +96,7 @@ export class AWSElasticTranscoderConnector extends BaseAWSConnector {
     await this.et.cancelJob({ Id: id }).promise()
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public async createJob(params: any): Promise<Job> {
     const res = await this.et.createJob(params).promise()
     return res.Job as Job

@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { promises as fs } from 'fs'
 import { Folder, zipOne } from './Folder'
-import { CoreEventHandler, Options, Reshuffle } from './CoreConnector'
+import { CoreEventHandler, EventConfiguration, Options, Reshuffle } from './CoreConnector'
 import { AWS, BaseAWSConnector, validateS3URL, validateURL } from './BaseAWSConnector'
 
 interface EventOptions {
@@ -106,7 +106,11 @@ export class AWSLambdaConnector extends BaseAWSConnector {
 
   // Events /////////////////////////////////////////////////////////
 
-  public on(options: EventOptions, handler: CoreEventHandler, eventId?: string) {
+  public on(
+    options: EventOptions,
+    handler: CoreEventHandler,
+    eventId?: string,
+  ): EventConfiguration {
     if (options.type !== 'QueueComplete') {
       throw new Error(`Invalid event type: ${options.type}`)
     }
@@ -201,7 +205,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     }
   }
 
-  public async create(functionName: string, payload: Payload, options: Options = {}) {
+  public async create(functionName: string, payload: Payload, options: Options = {}): Promise<any> {
     this.validateFunctionName(functionName)
     const buffer = await this.makeBuffer(payload)
 
@@ -247,15 +251,23 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     return zipOne('index.js', payload.code)
   }
 
-  public async createFromBuffer(functionName: string, buffer: Buffer, options?: Options) {
+  public async createFromBuffer(
+    functionName: string,
+    buffer: Buffer,
+    options?: Options,
+  ): Promise<any> {
     return this.create(functionName, { buffer }, options)
   }
 
-  public async createFromCode(functionName: string, code: string, options?: Options) {
+  public async createFromCode(functionName: string, code: string, options?: Options): Promise<any> {
     return this.create(functionName, { code }, options)
   }
 
-  public async createFromFile(functionName: string, filename: string, options?: Options) {
+  public async createFromFile(
+    functionName: string,
+    filename: string,
+    options?: Options,
+  ): Promise<any> {
     return this.create(functionName, { filename }, options)
   }
 
@@ -272,7 +284,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     functionName: string,
     payload: any | any[],
     maxConcurrent: number = QUEUE_CONCURRENCY_LIMIT,
-  ) {
+  ): Promise<string> {
     this.validateFunctionName(functionName)
 
     const payloads = Array.isArray(payload) ? payload : [payload]
@@ -368,7 +380,8 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     }
   }
 
-  public async invoke(functionName: string, payload: any) {
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  public async invoke(functionName: string, payload: any): Promise<any> {
     this.validateFunctionName(functionName)
 
     const res = await this.lambda
@@ -424,7 +437,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     }
   }
 
-  public async listFunctions() {
+  public async listFunctions(): Promise<any> {
     const res = await this.lambda.listFunctions({}).promise()
     return res.Functions
   }
