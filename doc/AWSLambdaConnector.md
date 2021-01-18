@@ -67,6 +67,8 @@ _Connector actions_:
 
 [createFromFile](#createFromFile) Create a new Lambda function from file
 
+[createInFolder](#createInFolder) Creare a new Lambda function by collecting files in a folder
+
 [delete](#delete) Delete a Lambda function
 
 [enqueue](#enqueue) Process a queue of tasks in Lambda functions
@@ -309,6 +311,40 @@ const functionInfo = await awsLambdaConnector.createFromFile(
 Create a new Lambda function with the given `functionName` to execute
 the code inside the file `filename`. See [create](#create) above for more
 details.
+
+##### <a name="createInFolder"></a>Create In Folder action
+
+_Definition:_
+
+```ts
+(
+  functionName: string,
+  fileHandler: async (folder => Folder) => Promise<void>,
+  options: object = {},
+) => object
+```
+
+_Usage:_
+
+```js
+const functionInfo = await awsLambdaConnector.createInFolder(
+  'toLowerUpperString',
+  async folder => {
+    await folder.copy('index.js', `${__dirname}/toLowerUpperString.js`)
+  }
+)
+```
+
+Create a new Lambda function with the given `functionName` to by setitng up
+files in a folder. The `folderHandler` object receives a single `folder`
+object that provides the following methods:
+
+* **copy(targetName: string, sourcePath: string): Promise<void>** Copy a file into the folder
+* **exec(cmd: string): Promise<{ error?: Error, stdout: string | Buffer, stderr: string | Buffer }>** Run a command inside the folder
+* **contains(filename: string): Promise<boolean>** Check if the folder contains a file
+* **write(targetName: string, data: string): Promise<void>** Create a file inside the folder with the specified data
+
+See [create](#create) above for more details.
 
 ##### <a name="delete"></a>Delete action
 

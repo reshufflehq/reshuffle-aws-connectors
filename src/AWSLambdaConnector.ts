@@ -4,6 +4,8 @@ import { Folder, zipOne } from './Folder'
 import { CoreEventHandler, EventConfiguration, Options, Reshuffle } from './CoreConnector'
 import { AWS, BaseAWSConnector, validateS3URL, validateURL } from './BaseAWSConnector'
 
+export { Folder }
+
 interface EventOptions {
   type: string
 }
@@ -160,12 +162,7 @@ export class AWSLambdaConnector extends BaseAWSConnector {
       }
     }
 
-    const folder = new Folder(
-      `reshuffle-awslambdaconnector-${crypto.randomBytes(8).toString('hex')}`,
-    )
-
-    try {
-      console.log(`${functionName}: Building code tree`)
+    async function folderHandler(folder: Folder) {
       await folder.copy('index.js', `${__dirname}/lambda-command.js`)
       await folder.copy('Folder.js', `${__dirname}/Folder.js`)
       await folder.write(
@@ -181,28 +178,20 @@ export class AWSLambdaConnector extends BaseAWSConnector {
         }),
       )
       await folder.exec('npm install')
-
-      console.log(`${functionName}: Building deployment package`)
-      const buffer = await folder.zip()
-      console.log(`${functionName}: Package size ${buffer.length} bytes`)
-
-      console.log(`${functionName}: Deploying to Lambda`)
-      const func = await this.createFromBuffer(functionName, buffer, {
-        ...options,
-        env: {
-          ...(options.env || {}),
-          EXECUTABLE: executable,
-        },
-        tags: {
-          ...(options.tags || {}),
-          [COMMAND_TAG_NAME]: COMMAND_TAG_VALUE,
-        },
-        timeout: options.timeout || 300,
-      }) // must explicitly await for finally
-      return func
-    } finally {
-      await folder.destroy()
     }
+
+    await this.createInFolder(functionName, folderHandler, {
+      ...options,
+      env: {
+        ...(options.env || {}),
+        EXECUTABLE: executable,
+      },
+      tags: {
+        ...(options.tags || {}),
+        [COMMAND_TAG_NAME]: COMMAND_TAG_VALUE,
+      },
+      timeout: options.timeout || 300,
+    })
   }
 
   public async create(functionName: string, payload: Payload, options: Options = {}): Promise<any> {
@@ -269,6 +258,31 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     options?: Options,
   ): Promise<any> {
     return this.create(functionName, { filename }, options)
+  }
+
+  public async createInFolder(
+    functionName: string,
+    folderHandler: (folder: Folder) => Promise<void>,
+    options: Options = {},
+  ): Promise<any> {
+    const folder = new Folder(
+      `reshuffle-awslambdaconnector-${crypto.randomBytes(8).toString('hex')}`,
+    )
+
+    try {
+      console.log(`${functionName}: Building code folder`)
+      await folderHandler(folder)
+
+      console.log(`${functionName}: Packaging folder`)
+      const buffer = await folder.zip()
+      console.log(`${functionName}: Package size ${buffer.length} bytes`)
+
+      console.log(`${functionName}: Deploying to Lambda`)
+      const func = await this.createFromBuffer(functionName, buffer, options)
+      return func // must explicitly await for finally
+    } finally {
+      await folder.destroy()
+    }
   }
 
   public async delete(functionName: string): Promise<void> {
