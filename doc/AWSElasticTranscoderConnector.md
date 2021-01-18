@@ -2,7 +2,7 @@
 
 [Code](https://github.com/reshufflehq/reshuffle-aws-connectors) |
 [npm](https://www.npmjs.com/package/reshuffle-aws-connectors) |
-[Code sample](https://github.com/reshufflehq/reshuffle-aws-connectors/blob/master/examples/elastic-transcoder.js)
+[Code sample](https://github.com/reshufflehq/reshuffle/blob/master/examples/aws/elastic-transcoder.js)
 
 `npm install reshuffle-aws-connectors`
 
