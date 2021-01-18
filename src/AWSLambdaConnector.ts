@@ -270,14 +270,14 @@ export class AWSLambdaConnector extends BaseAWSConnector {
     )
 
     try {
-      console.log(`${functionName}: Building code folder`)
+      console.debug(`${functionName}: Building code folder`)
       await folderHandler(folder)
 
-      console.log(`${functionName}: Packaging folder`)
+      console.debug(`${functionName}: Packaging folder`)
       const buffer = await folder.zip()
-      console.log(`${functionName}: Package size ${buffer.length} bytes`)
+      console.debug(`${functionName}: Package size ${buffer.length} bytes`)
 
-      console.log(`${functionName}: Deploying to Lambda`)
+      console.debug(`${functionName}: Deploying to Lambda`)
       const func = await this.createFromBuffer(functionName, buffer, options)
       return func // must explicitly await for finally
     } finally {

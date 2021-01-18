@@ -129,7 +129,7 @@ app.setPersistentStore(new MemoryStoreAdapter())
 
   aet.on({ pipelineId: pipeline.Id }, async (event) => {
     console.log(
-      `Trancoding job ${event.jobId}: ${event.old.Status || 'New'} -> ${event.current.Status}`,
+      `Transcoding job ${event.jobId}: ${event.old.Status || 'New'} -> ${event.current.Status}`,
     )
 
     if (event.current.Status === 'Complete') {

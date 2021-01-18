@@ -67,7 +67,7 @@ _Connector actions_:
 
 [createFromFile](#createFromFile) Create a new Lambda function from file
 
-[createInFolder](#createInFolder) Creare a new Lambda function by collecting files in a folder
+[createInFolder](#createInFolder) Create a new Lambda function by collecting files in a folder
 
 [delete](#delete) Delete a Lambda function
 
@@ -335,7 +335,7 @@ const functionInfo = await awsLambdaConnector.createInFolder(
 )
 ```
 
-Create a new Lambda function with the given `functionName` to by setitng up
+Create a new Lambda function with the given `functionName` to by setting up
 files in a folder. The `folderHandler` object receives a single `folder`
 object that provides the following methods:
 
