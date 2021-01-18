@@ -8,7 +8,7 @@
 
 ### Reshuffle AWS SNS Connector
 
-This [Reshuffle](https://reshuffle.com) connector can be used to send messages using
+This [Reshuffle](https://github.com/reshufflehq/reshuffle) connector can be used to send messages using
 [AWS SNS](https://docs.aws.amazon.com/sns/index.html).
 
 The following example sends a message via AWS SNS when Reshuffle receives an HTTP request on `/send`
