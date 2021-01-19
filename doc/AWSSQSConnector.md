@@ -93,7 +93,9 @@ _Example:_
 ```js
 (event, app) => { 
   console.log('new message received', event)
-  // 'new message received', { MessageId: '71c06956-76e1-4a8c-bc00-ed910566f36e', ReceiptHandle: 'AQEBTL1CTtn1clJ0XMSmRtpz7...', MD5OfBody: '9a72c70562843b823c2c9cad30665fe4', Body: 'Message from Reshuffle to queue' }
+  // 'new message received', { MessageId: '71c06956-76e1-4a8c-bc00-ed910566f36e', ReceiptHandle: 
+  // 'AQEBTL1CTtn1clJ0XMSmRtpz7...', MD5OfBody: '9a72c70562843b823c2c9cad30665fe4', Body: 'Message 
+  // from Reshuffle to queue' }
 }
 ```
 
