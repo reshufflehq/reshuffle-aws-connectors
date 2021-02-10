@@ -17,6 +17,10 @@ all implemented using the
 
 * [AWS SNS Connector](doc/AWSSNSConnector.md)
 
+* [AWS SQS Connector](doc/AWSSQSConnector.md)
+
+* [AWS Connector](doc/AWSConnector.md)
+
 ## Examples
 
 * [Elastic Transcoder](examples/elastic-transcoder.js)
@@ -36,6 +40,8 @@ all implemented using the
 * [SNS: send messages](https://github.com/reshufflehq/reshuffle/blob/master/examples/aws/sns-messages.js)
 
 * [SQS: send messages](https://github.com/reshufflehq/reshuffle/blob/master/examples/aws/sqs-messages.js)
+
+* [AWS SDK: List S3 buckets](examples/aws-s3-sdk.js)
 
 ## Use Cases
 
