@@ -82,19 +82,11 @@ export class AWSS3Connector extends BaseAWSConnector {
   }
 
   private async getObjectsInBucket() {
-    // This only works up to 1000 objects
-    const res = await this.s3
-      .listObjectsV2({
-        Bucket: this.bucket,
-      })
-      .promise()
-    if (!res.Contents) {
-      return {}
-    }
+    const list = await this.listObjects()
 
     const objects: S3Bucket = {}
 
-    for (const { Key, LastModified, ETag, Size } of res.Contents) {
+    for (const { Key, LastModified, ETag, Size } of list) {
       if (typeof Key !== 'string' || !Key) {
         throw new Error(`S3: Invalid object key: ${Key}`)
       }
@@ -184,12 +176,23 @@ export class AWSS3Connector extends BaseAWSConnector {
     await this.s3.deleteBucket({ Bucket: bucket }).promise()
   }
 
-  public async listObjects(
-    bucket: string = this.bucket,
-  ): Promise<Record<string, any>[] | undefined> {
-    // TODO: handle continuation tokens
-    const res = await this.s3.listObjectsV2({ Bucket: bucket }).promise()
-    return res.Contents
+  public async listObjects(bucket: string = this.bucket): Promise<Record<string, any>[]> {
+    const list = []
+    let continuationToken
+    while (true) {
+      const params: any = { Bucket: bucket }
+      if (continuationToken) {
+        params.ContinuationToken = continuationToken
+      }
+      const res = await this.s3.listObjectsV2(params).promise()
+      if (res.Contents) {
+        list.push(...res.Contents)
+      }
+      continuationToken = res.NextContinuationToken
+      if (!continuationToken) {
+        return list
+      }
+    }
   }
 
   public async listObjectKeys(bucket: string = this.bucket): Promise<string[]> {
